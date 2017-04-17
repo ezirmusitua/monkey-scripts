@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name         Highlight My interest
-// @version      0.1.1
+// @name         highlight-my-interest
+// @version      0.1.4
 // @description  高亮特定网页中感兴趣的关键词
 // @author       jferroal@gmail.com
 // @include      https://sspai.com/*
@@ -8,7 +8,7 @@
 // @include      http://www.inoreader.com/
 // @include      https://www.52pojie.com
 // @run-at       context-end
-// @namespace    https://greasyfork.org/users/34556
+// @namespace    https://greasyfork.org/users/34556-jferroal
 // ==/UserScript==
 
 const JFInterestedKeywords = [
