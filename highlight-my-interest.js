@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Highlight My interest
-// @version      0.1.0
+// @version      0.1.1
 // @description  高亮特定网页中感兴趣的关键词
 // @author       jferroal@gmail.com
 // @include      https://sspai.com/*
-// @include      http://toutiao.io/*
-// @include      http://www.inoreader.com
-// @include      http://www.52pojie.com
-// @run-at       document-start
+// @include      https://toutiao.io/*
+// @include      http://www.inoreader.com/
+// @include      https://www.52pojie.com
+// @run-at       context-end
 // @namespace    https://greasyfork.org/users/34556
 // ==/UserScript==
 
@@ -32,7 +32,10 @@ const JFInterestedKeywords = [
   /.*免费.*/gi,
   /.*限免.*/gi,
   /.*数据分析.*/gi,
+  /.*自由职业.*/gi
 ];
+
+let alreadyLoadedTimes = 0;
 
 function getElements() {
   const targetTagNames = ['h1', 'h2', 'h3', 'h4', 'h5', 'p', 'a', 'pre', 'blockquote', 'summary'];
@@ -47,16 +50,22 @@ function getElements() {
 
 function matchKeywordsInElements() {
   const elements = getElements();
-  elements.reduce((res, element) => {
+  elements.forEach((element) => {
     JFInterestedKeywords.forEach((keyword) => {
       const isMatched = keyword.test(element.innerText);
       if (isMatched) {
         element.style.backgroundColor = '#FFDA5E';
+        element.style.color = 'black';
       }
     });
   });
+  alreadyLoadedTimes += 1;
 }
-
-matchKeywordsInElements();
-
-
+const autoMatchInterval = setInterval(() => {
+  if (alreadyLoadedTimes < 100) {
+    matchKeywordsInElements();
+  } else {
+    clearInterval(autoMatchInterval);
+    console.log('will no match any more');
+  }
+}, 1000);
