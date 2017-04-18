@@ -5,7 +5,6 @@
 // @description:zh-CN   高亮特定网页中感兴趣的关键词
 // @version             0.1.7
 // @author              jferroal
-// @namespace           https://jferroal.com
 // @license             GPL-3.0
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/highlight-my-interest.user.js
 // @grant               none
