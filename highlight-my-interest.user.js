@@ -3,7 +3,7 @@
 // @name:zh-CN          高亮关键词
 // @description         highlight keywords in my favorites
 // @description:zh-CN   高亮特定网页中感兴趣的关键词
-// @version             v0.1.5
+// @version             0.1.5
 // @author              jferroal
 // @namespace           https://jferroal.com
 // @license             GPL-3.0
