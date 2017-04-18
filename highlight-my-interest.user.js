@@ -12,7 +12,7 @@
 // @include             https://sspai.com/*
 // @include             https://toutiao.io/*
 // @include             http://www.inoreader.com/
-// @include             https://www.52pojie.cn
+// @include             http://www.52pojie.cn/
 // @run-at              document-end
 // @namespace           https://greasyfork.org/users/34556-jferroal
 // ==/UserScript==
