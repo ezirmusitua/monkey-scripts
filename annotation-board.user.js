@@ -6,7 +6,7 @@
 // @version             0.1.0
 // @author              jferroal
 // @license             GPL-3.0
-// @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/highlight-my-interest.user.js
+// @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/annotation-board.user.js
 // @include             http://*
 // @include             https://*
 // @run-at              document-start
