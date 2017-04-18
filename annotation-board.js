@@ -22,13 +22,13 @@
 // 3. 窗口关闭后/不活跃后将内容复制到剪贴板
 // 4. 剪贴板中的内容需要有文章信息
 
-const formatDate = (date) => {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const date = date.getDate();
-  const hour = date.getHours();
-  const minute = date.getMinutes();
-  return `Date: ${year}-${month + 1}-${date}[${hour}:${minute}]`;
+const formatDate = (dateObj) => {
+  const year = dateObj.getFullYear();
+  const month = dateObj.getMonth();
+  const date = dateObj.getDate();
+  const hour = dateObj.getHours();
+  const minute = dateObj.getMinutes();
+  return `Date: ${year}-${month + 1}-${date}[${hour}:${minute > 9 ? minute : '0' + minute}]`;
 }
 
 const AnnotationBoardId = {
@@ -37,40 +37,62 @@ const AnnotationBoardId = {
   BUTTON: 'annotation-button'
 };
 
-let SelectionInstance = null;
+const copyToClipboard = (button, textarea) => {
+  document.getSelection().removeAllRanges();
+  const range = document.createRange();
+  range.selectNode(textarea);
+  document.getSelection().addRange(range);
+  try {
+    document.execCommand('copy');
+  } catch (err) {
+    console.log('Oops, unable to copy');
+  }
+  window.getSelection().removeAllRanges();
+}
+
 
 class Selection {
   constructor() {
     this.createAtStr = formatDate(new Date());
     this.selectionText = document.getSelection().toString();
-    if (!SelectionInstance) {
-      SelectionInstance = this;
-    }
-    return SelectionInstance;
   }
   concat() {
-    return this.createAtStr + '\n' + `Content: ${this.selectionText}`;
+    return this.createAtStr + '\n' + `Content: \n${this.selectionText}`;
   }
-  content() {
-    if (SelectionInstance) {
-      return SelectionInstance.previousContent + '\n' + '========' + '\n' + this.concat();
+  content(previousContent) {
+    if (previousContent) {
+      return previousContent + '\n' + '========' + '\n' + this.concat() + '\n';
     } else {
-      this.previousContent = this.concat();
+      return this.concat() + '\n';
     }
-    return this.previousContent;
+  }
+  isEmpty() {
+    return !this.selectionText;
+  }
+  static copyToClipboard(button, textarea) {
+    document.getSelection().removeAllRanges();
+    const range = document.createRange();
+    range.selectNode(textarea);
+    document.getSelection().addRange(range);
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      console.log('Oops, unable to copy');
+    }
+    document.getSelection().removeAllRanges();
   }
 }
 
 class Position {
   constructor(rect, offset) {
-    this._left = (rect.left + (offset || 16)) + 'px';
+    this._left = (rect.left + (offset || 32)) + 'px';
     this._top = (rect.top + (offset || 16)) + 'px';
   }
   top() {
-    return this.top;
+    return this._top;
   }
   left() {
-    return this.left;
+    return this._left;
   }
 }
 
@@ -82,14 +104,15 @@ class AnnotationTextArea {
     this.textarea.id = AnnotationBoardId.TEXTAREA;
     this.saveBtn = document.createElement('button');
     this.saveBtn.id = AnnotationBoardId.BUTTON;
+    this.isShowing = false;
   }
   getPosition() {
-    const focusNode = document.getSelection().focusNode();
+    const focusNode = document.getSelection().focusNode;
     if (!focusNode) throw new Error('no selection, should not create node');
     const focusParentElement = focusNode.parentElement;
     return new Position(focusParentElement.getBoundingClientRect());
   }
-  addContainerStyle() {
+  updateContainer() {
     try {
       const pos = this.getPosition();
       this.container.style.position = 'absolute';
@@ -98,60 +121,79 @@ class AnnotationTextArea {
       this.container.style.backgroundColor = 'red';
       this.container.style.padding = '8px';
     } catch (err) {
-      // do something
+      console.error(err);
     }
   }
-  addTextAreaStyle() {
-    // do something
+  updateSaveButton() {
+    this.saveBtn.innerHTML = 'Save!'
+    this.saveBtn.addEventListener('click', (event) => {
+      Selection.copyToClipboard(this.saveBtn, this.textarea);
+      this.hide();
+    })
   }
-  addSaveButtonStyle() {
-    // do something
+  updateTextarea(selection) {
+    this.textarea.value = selection.content(this.textarea.value);
+    this.textarea.style.width = '240px';
+    this.textarea.style.height = '128px';
   }
-  updateTextareaContent(selection) {
-    this.textarea.setAttribute('value', selection.content());
-  }
-  show(selection) {
-    this.updateTextareaContent(selection);
-    this.container.appendChild(this.textarea);
-    this.container.appendChild(this.saveBtn);
+  show() {
+    this.updateTextarea(new Selection());
+    this.updateContainer();
+    if (!this.isShowed) {
+      this.container.appendChild(this.textarea);
+      this.updateSaveButton();
+      this.container.appendChild(this.saveBtn);
+    }
     document.body.appendChild(this.container);
+    this.isShowing = true;
+    this.isShowed = true;
+  }
+  shouldShow() {
+    return !this.isShowing && !(new Selection()).isEmpty();
+  }
+  hide() {
+    this.isShowing = false;
+    document.body.removeChild(this.container)
+  }
+  shouldHide(event) {
+    const target = event && event.target;
+    if (!target && this.iShowing) {
+      return true;
+    } else {
+      const inContainer = event.target.id === AnnotationBoardId.CONTAINER;
+      const inTextarea = event.target.id === AnnotationBoardId.TEXTAREA;
+      const inButton = event.target.id === AnnotationBoardId.BUTTON;
+      return !inContainer && !inTextarea && !inButton && this.isShowing;
+    }
   }
   destory() {
+    this.container.removeChild(this.saveBtn);
     this.saveBtn = null;
+    this.container.removeChild(this.textarea);
     this.textarea = null;
+    document.body.removeChild(this.container);
     this.container = null;
   }
 }
 
 class AnnotationBoard {
   constructor() {
-    this.annotationTextArea = null;
+    this.annotationTextArea = new AnnotationTextArea();
+    this.eventBinding();
   }
   eventBinding() {
     window.addEventListener('mouseup', (event) => {
-      console.log('mouse up: ', event)
-      // this.handleMouseUp(event);
-    }, false);
-    window.addEventListener('click', (event) => {
-      console.log('click: ', event);
+      this.handleMouseUp(event);
     }, false);
   }
   handleMouseUp(event) {
-    if (event.target.id === AnnotationBoardId.BUTTON) return;
-    if (this.annotationTextArea) {
-      this.annotationTextArea.destory();
-    } else {
-      this.annotationTextArea = new AnnotationTextArea();
-      const selection = new Selection();
-      this.annotationTextArea.show(selection);
+    if (this.annotationTextArea.shouldShow()) {
+      this.annotationTextArea.show();
+    } else if (this.annotationTextArea.shouldHide(event)) {
+      this.annotationTextArea.hide();
     }
   }
-  handleClick(event) {
-    if (event.target.id !== AnnotationBoardId.BUTTON) return;
-    console.log('do some thing');
-  }
 }
-
-{
-  new AnnotationBoard();
-}
+window.onload = (event) => {
+  const board = new AnnotationBoard();
+};
