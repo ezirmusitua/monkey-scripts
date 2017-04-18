@@ -3,16 +3,13 @@
 // @name:zh-CN          注释墙
 // @description         allow you to add annotation after selected content and copy to clipboard
 // @description:zh-CN   选中内容后添加注释并复制到剪贴板
-// @version             0.1.7
+// @version             0.1.0
 // @author              jferroal
 // @license             GPL-3.0
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/highlight-my-interest.user.js
-// @grant               none
-// @require             https://cdn.bootcss.com/clipboard.js/1.6.1/clipboard.min.js
-// @require             https://cdn.bootcss.com/jquery/3.2.1/jquery.slim.min.js
 // @include             http://*
 // @include             https://*
-// @run-at              document-end
+// @run-at              document-start
 // @namespace           https://greasyfork.org/users/34556
 // ==/UserScript==
 
@@ -21,6 +18,39 @@
 // 2. 添加的注释中需要有事件信息
 // 3. 窗口关闭后/不活跃后将内容复制到剪贴板
 // 4. 剪贴板中的内容需要有文章信息
+class AnnotationBoardStyle {
+  constructor() { }
+  static containerStyle(containerStyleObj, position) {
+    containerStyleObj.fontFamily = 'Noto';
+    containerStyleObj.display = 'flex';
+    containerStyleObj.flexDirection = 'column';
+    containerStyleObj.border = '4px';
+    containerStyleObj.boxShadow = '0px 3px 8px 1px rgba(0, 0, 0, 0.26)';
+    containerStyleObj.position = 'absolute';
+    containerStyleObj.backgroundColor = 'rgba(0, 0, 0, 0.56)';
+    containerStyleObj.padding = '16px 4px 8px 4px';
+    containerStyleObj.we
+  }
+  static textareaStyle(textareaStyleObj) {
+    textareaStyleObj.fontFamily = 'Noto';
+    textareaStyleObj.width = '240px';
+    textareaStyleObj.height = '128px';
+    textareaStyleObj.backgroundColor = 'rgba(255, 255, 255, 0.87)';
+    textareaStyleObj.marginBottom = '8px';
+    textareaStyleObj.borderRadius = '4px';
+    textareaStyleObj.color = 'rgba(0, 0, 0, 0.76)'
+    textareaStyleObj.fontSize = '12px';
+  }
+  static saveButtonStyle(buttonStyleObj) {
+    buttonStyleObj.fontFamily = 'Noto';
+    buttonStyleObj.border = 'none';
+    buttonStyleObj.borderRadius = '4px';
+    buttonStyleObj.height = '24px';
+    buttonStyleObj.backgroundColor = 'rgba(255, 255, 255, 0.87)'
+    buttonStyleObj.color = 'rgba(0, 0, 0, 0.76)'
+    buttonStyleObj.fontSize = '14px';
+  }
+}
 
 const formatDate = (dateObj) => {
   const year = dateObj.getFullYear();
@@ -36,20 +66,6 @@ const AnnotationBoardId = {
   TEXTAREA: 'annotation-textarea',
   BUTTON: 'annotation-button'
 };
-
-const copyToClipboard = (button, textarea) => {
-  document.getSelection().removeAllRanges();
-  const range = document.createRange();
-  range.selectNode(textarea);
-  document.getSelection().addRange(range);
-  try {
-    document.execCommand('copy');
-  } catch (err) {
-    console.log('Oops, unable to copy');
-  }
-  window.getSelection().removeAllRanges();
-}
-
 
 class Selection {
   constructor() {
@@ -100,10 +116,14 @@ class AnnotationTextArea {
   constructor() {
     this.container = document.createElement('div');
     this.container.id = AnnotationBoardId.CONTAINER;
+    AnnotationBoardStyle.containerStyle(this.container.style);
     this.textarea = document.createElement('textarea');
     this.textarea.id = AnnotationBoardId.TEXTAREA;
+    AnnotationBoardStyle.textareaStyle(this.textarea.style);
     this.saveBtn = document.createElement('button');
+    this.saveBtn.innerHTML = '复制到剪贴板';
     this.saveBtn.id = AnnotationBoardId.BUTTON;
+    AnnotationBoardStyle.saveButtonStyle(this.saveBtn.style);
     this.isShowing = false;
   }
   getPosition() {
@@ -115,17 +135,13 @@ class AnnotationTextArea {
   updateContainer() {
     try {
       const pos = this.getPosition();
-      this.container.style.position = 'absolute';
       this.container.style.left = pos.left();
       this.container.style.top = pos.top();
-      this.container.style.backgroundColor = 'red';
-      this.container.style.padding = '8px';
     } catch (err) {
       console.error(err);
     }
   }
   updateSaveButton() {
-    this.saveBtn.innerHTML = 'Save!'
     this.saveBtn.addEventListener('click', (event) => {
       Selection.copyToClipboard(this.saveBtn, this.textarea);
       this.hide();
@@ -133,8 +149,6 @@ class AnnotationTextArea {
   }
   updateTextarea(selection) {
     this.textarea.value = selection.content(this.textarea.value);
-    this.textarea.style.width = '240px';
-    this.textarea.style.height = '128px';
   }
   show() {
     this.updateTextarea(new Selection());
@@ -179,6 +193,8 @@ class AnnotationTextArea {
 class AnnotationBoard {
   constructor() {
     this.annotationTextArea = new AnnotationTextArea();
+  }
+  run() {
     this.eventBinding();
   }
   eventBinding() {
@@ -194,6 +210,5 @@ class AnnotationBoard {
     }
   }
 }
-window.onload = (event) => {
-  const board = new AnnotationBoard();
-};
+const annotationBoard = new AnnotationBoard();
+annotationBoard.run();
