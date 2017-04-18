@@ -1,14 +1,20 @@
 // ==UserScript==
-// @name         highlight-my-interest
-// @version      0.1.4
-// @description  高亮特定网页中感兴趣的关键词
-// @author       jferroal@gmail.com
-// @include      https://sspai.com/*
-// @include      https://toutiao.io/*
-// @include      http://www.inoreader.com/
-// @include      https://www.52pojie.com
-// @run-at       context-end
-// @namespace    https://greasyfork.org/users/34556-jferroal
+// @name                highlight-my-interest
+// @name:zh-CN          高亮关键词
+// @description         highlight keywords in my favorites
+// @description:zh-CN   高亮特定网页中感兴趣的关键词
+// @version             v0.1.5
+// @author              jferroal
+// @namespace           https://jferroal.com
+// @license             GPL-3.0
+// @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/highlight-my-interest.user.js
+// @grant               none
+// @include             https://sspai.com/*
+// @include             https://toutiao.io/*
+// @include             http://www.inoreader.com/
+// @include             https://www.52pojie.com
+// @run-at              document-end
+// @namespace           https://greasyfork.org/users/34556-jferroal
 // ==/UserScript==
 
 const JFInterestedKeywords = [
