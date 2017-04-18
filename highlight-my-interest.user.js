@@ -3,7 +3,7 @@
 // @name:zh-CN          高亮关键词
 // @description         highlight keywords in my favorites
 // @description:zh-CN   高亮特定网页中感兴趣的关键词
-// @version             0.1.5
+// @version             0.1.6
 // @author              jferroal
 // @namespace           https://jferroal.com
 // @license             GPL-3.0
@@ -12,7 +12,7 @@
 // @include             https://sspai.com/*
 // @include             https://toutiao.io/*
 // @include             http://www.inoreader.com/
-// @include             https://www.52pojie.com
+// @include             https://www.52pojie.cn
 // @run-at              document-end
 // @namespace           https://greasyfork.org/users/34556-jferroal
 // ==/UserScript==
