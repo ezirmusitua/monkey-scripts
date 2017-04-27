@@ -1,14 +1,15 @@
 // ==UserScript==
 // @name                annotation-board
 // @name:zh-CN          注释墙
-// @description         allow you to add annotation after selected content and copy to clipboard
-// @description:zh-CN   选中内容后添加注释并复制到剪贴板
-// @version             0.1.0
+// @description         allow you to add annotation after selected content and copy to clipboard and save to local server
+// @description:zh-CN   选中内容后添加注释并复制到剪贴板, 同时在本地的服务其中新建一个副本, 参见 https://github.com/ezirmusitua/snippet-board
+// @version             0.2.0
 // @author              jferroal
 // @license             GPL-3.0
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/annotation-board.user.js
 // @include             http://*
 // @include             https://*
+// @grant               GM_xmlhttpRequest
 // @run-at              document-start
 // @namespace           https://greasyfork.org/users/34556
 // ==/UserScript==
@@ -18,6 +19,45 @@
 // 2. 添加的注释中需要有事件信息
 // 3. 窗口关闭后/不活跃后将内容复制到剪贴板
 // 4. 剪贴板中的内容需要有文章信息
+// 5. 可以将复制的内容发送到 server 上
+
+
+function createSnippet(snippetContent, _host, _port) {
+  let host = _host;
+  if (!host) {
+    host = 'http://127.0.0.1';
+  }
+  var port = _port;
+  if (!port) {
+    port = 5000;
+  }
+  const body = {
+    link: window.location.href,
+    raw_content: snippetContent,
+  }
+  GM_xmlhttpRequest({
+    method: "POST",
+    url: host + ':' + port.toString() + "/snippet/api/v0.1.0",
+    data: JSON.stringify(body),
+    headers: { "Content-Type": "application/json" },
+    onreadystatechange: function (response) {
+      console.log('trying to create snippet ... ');
+    },
+    onload: function (response) {
+      console.log('snippet created! ');
+    },
+    onerror: function (response) {
+      console.log('something wrong while creating snippet. ');
+    },
+    ontimeout: function (response) {
+      console.log('request timeout! ');
+    },
+    onabort: function (response) {
+      console.log('request aborted. ');
+    }
+  });
+}
+
 class AnnotationBoardStyle {
   constructor() { }
   static containerStyle(containerStyleObj, position) {
@@ -29,7 +69,6 @@ class AnnotationBoardStyle {
     containerStyleObj.position = 'absolute';
     containerStyleObj.backgroundColor = 'rgba(0, 0, 0, 0.56)';
     containerStyleObj.padding = '16px 4px 8px 4px';
-    containerStyleObj.we
   }
   static textareaStyle(textareaStyleObj) {
     textareaStyleObj.fontFamily = 'Noto';
@@ -144,6 +183,7 @@ class AnnotationTextArea {
   updateSaveButton() {
     this.saveBtn.addEventListener('click', (event) => {
       Selection.copyToClipboard(this.saveBtn, this.textarea);
+      createSnippet(this.textarea.value);
       this.hide();
     })
   }
