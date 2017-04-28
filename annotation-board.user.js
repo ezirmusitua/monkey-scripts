@@ -14,14 +14,6 @@
 // @namespace           https://greasyfork.org/users/34556
 // ==/UserScript==
 
-// Features
-// 1. 选中后弹出输入框添加注释
-// 2. 添加的注释中需要有事件信息
-// 3. 窗口关闭后/不活跃后将内容复制到剪贴板
-// 4. 剪贴板中的内容需要有文章信息
-// 5. 可以将复制的内容发送到 server 上
-
-
 function createSnippet(snippetContent, _host, _port) {
   let host = _host;
   if (!host) {
