@@ -116,7 +116,7 @@ class Selection {
   isEmpty() {
     return !this.selectionText;
   }
-  static copyToClipboard(button, textarea) {
+  static copyToClipboard(textarea) {
     document.getSelection().removeAllRanges();
     const range = document.createRange();
     range.selectNode(textarea);
@@ -174,7 +174,7 @@ class AnnotationTextArea {
   }
   updateSaveButton() {
     this.saveBtn.addEventListener('click', (event) => {
-      Selection.copyToClipboard(this.saveBtn, this.textarea);
+      Selection.copyToClipboard(this.textarea);
       createSnippet(this.textarea.value);
       this.hide();
     })
