@@ -60,11 +60,11 @@ class LocalRequest {
         payload.onload = onload;
       } else {
         payload.onload = (response) => {
-          console.log('task started! ', response);
+          console.log('task started! ');
           resolve(response);
         };
       }
-      GM_xmlhttpRequest(payload);
+      return GM_xmlhttpRequest(payload);
     });
   }
   static startTask(task) {
@@ -82,10 +82,11 @@ class PageParser {
     const currentHref = window.location.href;
     this.type = /http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(currentHref) ? 'single' : 'multi';
     if (this.type === 'single') {
-      this.targetElements = [document.getElementId('video_id')];
+      this.targetElements = [document.getElementById('video_id')];
     } else {
       this.targetElements = document.getElementsByClassName('post-headline') || [];
     }
+    console.log(this.targetElements);
   }
   toTasks() {
     if (this.tasks && this.tasks.length) {
@@ -102,28 +103,28 @@ class PageParser {
     }
     return this.tasks;
   }
-  toNameElemMap() {
-    if (this.nameElemMap) {
-      return this.nameElemMap;
+  get nameElemMap() {
+    if (this._nameElemMap) {
+      return this._nameElemMap;
     }
-    this.nameElemMap = {};
+    this._nameElemMap = {};
     for (let i = 0; i < this.targetElements.length; i += 1) {
       const elem = this.targetElements[i];
       if (this.type === 'single') {
-        const name = elem.children[0].children[0].children[0].children[1].textContent.trim();
-        this.nameElemMap[name] = {
+        const name = elem.children[0].children[0].children[0].children[1].textContent;
+        this._nameElemMap[name] = {
           progressBarParent: elem,
           statusBarParent: elem.children[0].children[0].children[0].children[1],
         };
       } else {
         const name = elem.children[0].textContent;
-        this.nameElemMap[name] = {
+        this._nameElemMap[name] = {
           progressBarParent: elem,
           statusBarParent: elem.children[0],
         };
       }
     }
-    return this.nameElemMap;
+    return this._nameElemMap;
   }
 }
 
@@ -209,36 +210,35 @@ class Selection {
   }
 }
 
-const DownloadOperationBtnStyle = {
-  basic: () => {
-    elementStyle.borderRadius = '50%';
+class DownloadOperationBtnStyle {
+  static basic(elementStyle) {
     elementStyle.width = '20px';
     elementStyle.height = '20px';
-    elementStyle.fontSize = '16px';
-    elementStyle.padding = '2px';
-    elementStyle.color = 'white';
     elementStyle.boxSizing = 'border-box';
-  },
-  waiting: (elementStyle) => {
-    this.basic(elementStyle);
-    elementStyle.backgroundColor = 'green';
-  },
-  paused: (elementStyle) => {
-    this.basic(elementStyle);
-    elementStyle.backgroundColor = 'orange';
-  },
-  removed: (elementStyle) => {
-    this.basic(elementStyle);
-    elementStyle.backgroundColor = 'red';
-  },
-  complete: (elementStyle) => {
-    this.basic(elementStyle);
-    elementStyle.backgroundColor = 'red';
-  },
-  error: (elementStyle) => {
-    this.basic(elementStyle);
-    elementStyle.backgroundColor = 'red';
-  },
+    elementStyle.marginLeft = '4px';
+    elementStyle.cursor = 'pointer';
+  }
+  static waiting(elementStyle) {
+    DownloadOperationBtnStyle.basic(elementStyle);
+    // elementStyle.backgroundColor = 'green';
+  }
+  static paused(elementStyle) {
+    DownloadOperationBtnStyle.basic(elementStyle);
+    // elementStyle.backgroundColor = 'orange';
+  }
+  static removed(elementStyle) {
+    DownloadOperationBtnStyle.basic(elementStyle);
+    // elementStyle.backgroundColor = 'red';
+  }
+  static complete(elementStyle) {
+    DownloadOperationBtnStyle.basic(elementStyle);
+    // elementStyle.backgroundColor = 'red';
+    elementStyle.pointer = 'default';
+  }
+  static error(elementStyle) {
+    DownloadOperationBtnStyle.basic(elementStyle);
+    // elementStyle.backgroundColor = 'red';
+  }
 };
 
 const DownloadOperationBtnText = {
@@ -259,9 +259,10 @@ const TaskStatusBtnCandidates = {
 
 const TaskOperation = {
   'waiting': (task) => {
-    return () => {
-
-    };
+    console.log('waiting');
+  },
+  'error': (task) => {
+    console.log('error');
   }
 }
 
@@ -272,22 +273,24 @@ class DownloadOperationBtn {
     this.btn.textContent = DownloadOperationBtnText[status];
   }
   bind(action, fn) {
+    console.log(fn)
     this.btn.addEventListener(action, fn);
-    return this.btn;
+    return this;
   }
   appendTo(parent) {
     parent.appendChild(this.btn);
   }
 }
 
-class DownloadProgress {
+class TaskProgressBar {
   constructor(task) {
     const percentage = (task.completedLength / task.length) * 100;
     this.progressBar = document.createElement('div');
+    this.progressBar.style.position = 'absolute';
+    this.progressBar.style.top = this.progressBar.style.left = '0';
     this.progressBar.style.width = '100%';
     this.progressBar.style.height = '4px';
     this.progressBar.style.backgroundColor = 'grey';
-    this.progressBar.style.marginBottom = '4px';
     const alreadyProgress = document.createElement('div');
     alreadyProgress.style.width = percentage + '%';
     alreadyProgress.style.height = 'inherit';
@@ -299,101 +302,48 @@ class DownloadProgress {
   }
 }
 
-class StatusBar {
+class TaskStatusBar {
   constructor(task) {
     this.statusBar = document.createElement('section');
-    this.statusBar.marginTop = "-3px";
-    for (const cand of TaskStatusBtnCandidates[status]) {
+    this.statusBar.style.display = 'flex';
+    this.statusBar.style.margin = '-4px 0';
+    for (const cand of TaskStatusBtnCandidates[task.status]) {
       const btn = new DownloadOperationBtn(cand);
-      btn.bind('click', TaskOperation[status]).appendTo(this.statusBar);
+      console.log(TaskOperation[cand]);
+      btn.bind('click', TaskOperation[cand]).appendTo(this.statusBar);
     }
   }
   appendTo(parent) {
     parent.style.display = 'flex';
+    parent.style.margin = '4px 0';
     parent.appendChild(this.statusBar);
   }
 }
 
-class Truck {
-  constructor(carLicense) {
-    this.target = `https://www.tokyotosho.info/search.php?terms=${carLicense}`;
-  }
-  transfer(fn) {
-    GM_xmlhttpRequest({
-      method: "GET",
-      url: this.target,
-      headers: HEADERS,
-      onreadystatechange: function (response) {
-        console.log('trying to get searching result ... ');
-      },
-      onload: function (response) {
-        const matcher = new TokyoToShoMatcher(response.response);
-        fn(matcher.matchAll());
-      },
-      onerror: function (response) {
-        console.log('something wrong while searching. ');
-      },
-      ontimeout: function (response) {
-        console.log('request timeout! ');
-      },
-      onabort: function (response) {
-        console.log('request aborted. ');
-      }
-    });
-  }
-}
 
 class AE86 {
-  constructor() {
-    this.button = document.createElement('button');
-    this.button.style.height = '48px';
-    this.button.style.width = '48px';
-    this.button.style.backgroundColor = 'green';
-    this.button.style.position = 'fixed';
-    this.button.style.left = '50%';
-    this.button.style.top = '50%';
-    this.button.style.borderRadius = '50%';
-    this.button.style.display = 'none';
-    this.button.innerText = '复制';
-    document.body.appendChild(this.button);
-    this.textarea = document.createElement('textarea');
-    this.textarea.style.height = '100px';
-    this.textarea.style.width = '100px';
-    this.textarea.style.display = 'block';
-    document.body.appendChild(this.textarea);
-  }
+  constructor() { }
   run() {
     this.loadTasks();
-    this.bindEvent();
+  }
+  initTaskStatElem(taskNameMap) {
+    for (const name in taskNameMap) {
+      if (taskNameMap.hasOwnProperty(name)) {
+        const task = taskNameMap[name];
+        const relatedElem = this.pageParser.nameElemMap[name];
+        const statusBar = new TaskStatusBar(task);
+        statusBar.appendTo(relatedElem.statusBarParent);
+        const progressBar = new TaskProgressBar(task);
+        progressBar.appendTo(relatedElem.progressBarParent);
+      }
+    }
   }
   loadTasks() {
-    const pageParser = new PageParser();
-    const init_tasks = pageParser.toTasks();
-    LocalRequest.listTask(init_tasks).then((res) => {
-      console.log(res);
+    this.pageParser = new PageParser();
+    LocalRequest.listTask(this.pageParser.toTasks()).then((res) => {
+      const taskNameMap = JSON.parse(res.responseText);
+      this.initTaskStatElem(taskNameMap);
     });
-  }
-  bindEvent() {
-    window.addEventListener('mouseup', (event) => {
-      this.handleMouseUp(event);
-    }, false);
-    this.button.addEventListener('click', (event) => {
-      Selection.copyToClipboard(this.textarea);
-      this.textarea.value = '';
-      this.button.style.display = 'none';
-    }, false);
-  }
-  handleMouseUp(event) {
-    const carLicense = (new Selection()).content();
-    if (carLicense && !this.textarea.value) {
-      const truck = new Truck(carLicense);
-      truck.transfer((magnets) => {
-        this.textarea.value = (new Filter(magnets)).best().link;
-        if (this.textarea.value) {
-          this.button.style.display = 'block';
-        }
-      });
-    }
   }
 }
 const car = new AE86();
