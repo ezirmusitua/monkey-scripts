@@ -1,30 +1,19 @@
 // ==UserScript==
-// @name                new driver way
-// @name:zh-CN          新手老司机
-// @description         make it simple to use javlibrary and tokyo tosho
-// @description:zh-CN   在 javlibrary 中寻找感兴趣的内容直接通过 tokyo 获得 磁链地址
-// @version             0.1.0
+// @name                jav download control panel
+// @name:zh-CN          Jav 下载控制台
+// @description         Use javlibrary as your video download control panel
+// @description:zh-CN   把 javlibrary 作为下载控制台
+// @version             0.2.0
 // @author              jferroal
 // @license             GPL-3.0
-// @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/new-driver-way.user.js
+// @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/jav-download-control-panel.user.js
 // @include             http://www.javlibrary.com/*
-// @include             https://www.baidu.com/*
 // @grant               GM_xmlhttpRequest
 // @run-at              document-end
 // @namespace           https://greasyfork.org/users/34556
 // ==/UserScript==
 
-const HEADERS = {
-  ':authority': 'www.tokyotosho.info',
-  ':method': 'GET',
-  ':path': `/search.php?terms=${this.target}`,
-  ':scheme': 'https',
-  'accept': 'text / html, application/xhtml+xml,application/xml;q=0.9, image/webp,*/*;q=0.8',
-  'accept-encoding;': 'gzip, deflate, sdch, br',
-  'accept-language': 'zh-CN, en-US;q=0.8, en;q=0.6, zh;q=0.4',
-  'cache-control': 'no-cache',
-};
-
+// local request client
 class LocalRequest {
   static get baseUri() {
     return 'http://localhost:5000/downloader/api/v0.1.0/task';
@@ -34,18 +23,17 @@ class LocalRequest {
       const payload = {
         url,
         headers: { "Content-Type": "application/json" },
-        onreadystatechange: function (response) {
-          console.log('trying to start download task ... ');
-        },
         onerror: function (response) {
           console.log('something wrong while start download task. ');
           reject(response);
         },
         ontimeout: function (response) {
           console.log('request timeout! ');
+          reject(response.response);
         },
         onabort: function (response) {
           console.log('request aborted. ');
+          reject(response.response);
         }
       };
       if (method) {
@@ -60,7 +48,6 @@ class LocalRequest {
         payload.onload = onload;
       } else {
         payload.onload = (response) => {
-          console.log('task started! ');
           resolve(response);
         };
       }
@@ -76,17 +63,24 @@ class LocalRequest {
   }
 }
 
-
+// parse page while page load
 class PageParser {
   constructor() {
     const currentHref = window.location.href;
-    this.type = /http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(currentHref) ? 'single' : 'multi';
+    if (/http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(currentHref)) {
+      this.type = 'single';
+    } else if (/http:\/\/www\.javlibrary\.com\/cn\/vl_.*/.test(currentHref)) {
+      this.type = 'video';
+    } else {
+      this.type = 'home';
+    }
     if (this.type === 'single') {
       this.targetElements = [document.getElementById('video_id')];
+    } else if (this.type === 'video') {
+      this.targetElements = document.getElementsByClassName('video') || [];
     } else {
       this.targetElements = document.getElementsByClassName('post-headline') || [];
     }
-    console.log(this.targetElements);
   }
   toTasks() {
     if (this.tasks && this.tasks.length) {
@@ -97,6 +91,8 @@ class PageParser {
       const elem = this.targetElements[i];
       if (this.type === 'single') {
         this.tasks.push(elem.children[0].children[0].children[0].children[1].textContent);
+      } else if (this.type === 'video') {
+        this.tasks.push(elem.children[0].children[0].textContent);
       } else {
         this.tasks.push(elem.children[0].textContent);
       }
@@ -116,6 +112,12 @@ class PageParser {
           progressBarParent: elem,
           statusBarParent: elem.children[0].children[0].children[0].children[1],
         };
+      } else if (this.type === 'video') {
+        const name = elem.children[0].children[0].textContent;
+        this._nameElemMap[name] = {
+          progressBarParent: elem,
+          statusBarParent: elem.children[0].children[0],
+        };
       } else {
         const name = elem.children[0].textContent;
         this._nameElemMap[name] = {
@@ -128,28 +130,46 @@ class PageParser {
   }
 }
 
-class Filter {
-  constructor(magnets) {
-    if (!magnets) {
-      this.magnets = [];
-    } else {
-      this.magnets = magnets;
-    }
-    this.bestOne = this.magnets.reduce((best, magnet) => {
-      const current = {
-        link: magnet.link,
-        score: (magnet.sCount || 0) * 10 + (magnet.cCount || 0) * 5 + (magnet.lCount || 0) * 2,
-        size: parseInt(magnet.size.slice(0, -2), 10) * (magnet.size.indexOf('GB') > -1 ? 1000 : 1),
-      };
-      if (current.score < best.score) return best;
-      const size = parseInt(magnet.size.slice(0, -2), 10) * (magnet.size.indexOf('GB') > -1 ? 1000 : 1);
-      if (current.score > best.score) return current;
-      if (current.size < best.size) return best;
-      return current;
-    }, { link: '', score: 0, size: 0 });
+// Search result from tokyotosho
+class TokyoToShoRequest {
+  static get headers() {
+    return {
+      ':authority': 'www.tokyotosho.info',
+      ':method': 'GET',
+      ':path': `/search.php?terms=${this.target}`,
+      ':scheme': 'https',
+      'accept': 'text / html, application/xhtml+xml,application/xml;q=0.9, image/webp,*/*;q=0.8',
+      'accept-encoding;': 'gzip, deflate, sdch, br',
+      'accept-language': 'zh-CN, en-US;q=0.8, en;q=0.6, zh;q=0.4',
+      'cache-control': 'no-cache',
+    };
   }
-  best() {
-    return this.bestOne;
+  static get baseUri() {
+    return 'https://www.tokyotosho.info/search.php?terms=';
+  }
+  static search(target) {
+    return new Promise((resolve, reject) => {
+      return GM_xmlhttpRequest({
+        method: "GET",
+        url: TokyoToShoRequest.baseUri + target,
+        headers: TokyoToShoRequest.headers,
+        onload: function (response) {
+          resolve(response.response);
+        },
+        onerror: function (response) {
+          console.log('something wrong while searching. ');
+          reject(response.response);
+        },
+        ontimeout: function (response) {
+          console.log('request timeout! ');
+          reject(response.response);
+        },
+        onabort: function (response) {
+          console.log('request aborted. ');
+          reject(response.response);
+        }
+      });
+    })
   }
 }
 
@@ -188,35 +208,50 @@ class TokyoToShoMatcher {
   }
 }
 
-
-class Selection {
-  constructor() {
-    this.selectionText = document.getSelection().toString();
-  }
-  content(previousContent) {
-    return this.selectionText;
-  }
-  static copyToClipboard(textarea) {
-    document.getSelection().removeAllRanges();
-    const range = document.createRange();
-    range.selectNode(textarea);
-    document.getSelection().addRange(range);
-    try {
-      document.execCommand('copy');
-    } catch (err) {
-      console.log('Oops, unable to copy');
+class SearchResultFilter {
+  constructor(magnets) {
+    if (!magnets) {
+      this.magnets = [];
+    } else {
+      this.magnets = magnets;
     }
-    document.getSelection().removeAllRanges();
+    this.bestOne = this.magnets.reduce((best, magnet) => {
+      const current = {
+        link: magnet.link,
+        score: (magnet.sCount || 0) * 10 + (magnet.cCount || 0) * 5 + (magnet.lCount || 0) * 2,
+        size: parseInt(magnet.size.slice(0, -2), 10) * (magnet.size.indexOf('GB') > -1 ? 1000 : 1),
+      };
+      if (current.score < best.score) return best;
+      const size = parseInt(magnet.size.slice(0, -2), 10) * (magnet.size.indexOf('GB') > -1 ? 1000 : 1);
+      if (current.score > best.score) return current;
+      if (current.size < best.size) return best;
+      return current;
+    }, { link: '', score: 0, size: 0 });
+  }
+  best() {
+    return this.bestOne;
   }
 }
 
+// Status and progress bar
 class DownloadOperationBtnStyle {
   static basic(elementStyle) {
-    elementStyle.width = '20px';
-    elementStyle.height = '20px';
+    elementStyle.width = '22px';
+    elementStyle.height = '22px';
     elementStyle.boxSizing = 'border-box';
     elementStyle.marginLeft = '4px';
     elementStyle.cursor = 'pointer';
+  }
+  static unknown(elementStyle) {
+    DownloadOperationBtnStyle.basic(elementStyle);
+    elementStyle.color = 'white';
+    elementStyle.backgroundColor = 'grey';
+    elementStyle.borderRadius = '50%';
+    elementStyle.padding
+  }
+  static active(elementStyle) {
+    DownloadOperationBtnStyle.basic(elementStyle);
+    // elementStyle.backgroundColor = 'green';
   }
   static waiting(elementStyle) {
     DownloadOperationBtnStyle.basic(elementStyle);
@@ -242,7 +277,9 @@ class DownloadOperationBtnStyle {
 };
 
 const DownloadOperationBtnText = {
-  waiting: '⏩',
+  unknown: '⸮',
+  active: '⏩',
+  waiting: '•',
   paused: '⏸',
   removed: '⌦',
   complete: '🛆',
@@ -250,30 +287,75 @@ const DownloadOperationBtnText = {
 };
 
 const TaskStatusBtnCandidates = {
-  'waiting': ['paused', 'removed'],
-  'paused': ['waiting', 'removed'],
-  'removed': ['waiting'],
-  'complete': ['waiting', 'complete'],
-  'error': ['waiting', 'error'],
+  'unknown': ['unknown'],
+  'active': ['paused', 'removed'],
+  'waiting': ['removed'],
+  'paused': ['active', 'removed'],
+  'removed': ['active'],
+  'complete': ['active', 'complete'],
+  'error': ['error'],
 };
 
 const TaskOperation = {
-  'waiting': (task) => {
-    console.log('waiting');
+  unknown: (task) => {
+    return (event) => {
+      event.preventDefault();
+      TokyoToShoRequest.search(task.name).then((response) => {
+        const magnets = (new TokyoToShoMatcher(response)).matchAll();
+        if (magnets && magnets.length) {
+          const best = (new SearchResultFilter(magnets)).best();
+          LocalRequest.startTask({ name: task.name, uri: best.link });
+        } else {
+          alert('无可用资源');
+        }
+      });
+    }
   },
-  'error': (task) => {
-    console.log('error');
-  }
+  active: (task) => {
+    return (event) => {
+      console.log('resume');
+    }
+  },
+  waiting: (task) => {
+    return (event) => {
+      event.preventDefault();
+      console.log('error');
+    }
+  },
+  paused: (task) => {
+    return (event) => {
+      event.preventDefault();
+      console.log('error');
+    }
+  },
+  removed: (task) => {
+    return (event) => {
+      event.preventDefault();
+      console.log('error');
+    }
+  },
+  error: (task) => {
+    return (event) => {
+      event.preventDefault();
+      console.log('error');
+    }
+  },
+  complete: (task) => {
+    return (event) => {
+      event.preventDefault();
+      console.log('error');
+    }
+  },
 }
 
 class DownloadOperationBtn {
   constructor(status) {
     this.btn = document.createElement('div');
+    console.log(status, DownloadOperationBtnStyle[status]);
     DownloadOperationBtnStyle[status](this.btn.style);
     this.btn.textContent = DownloadOperationBtnText[status];
   }
   bind(action, fn) {
-    console.log(fn)
     this.btn.addEventListener(action, fn);
     return this;
   }
@@ -284,7 +366,8 @@ class DownloadOperationBtn {
 
 class TaskProgressBar {
   constructor(task) {
-    const percentage = (task.completedLength / task.length) * 100;
+    console.log(task);
+    const percentage = (task.completedLength / task.totalLength) * 100;
     this.progressBar = document.createElement('div');
     this.progressBar.style.position = 'absolute';
     this.progressBar.style.top = this.progressBar.style.left = '0';
@@ -309,22 +392,23 @@ class TaskStatusBar {
     this.statusBar.style.margin = '-4px 0';
     for (const cand of TaskStatusBtnCandidates[task.status]) {
       const btn = new DownloadOperationBtn(cand);
-      console.log(TaskOperation[cand]);
-      btn.bind('click', TaskOperation[cand]).appendTo(this.statusBar);
+      btn.bind('click', TaskOperation[cand](task)).appendTo(this.statusBar);
     }
   }
   appendTo(parent) {
     parent.style.display = 'flex';
-    parent.style.margin = '4px 0';
+    parent.style.margin = '4px 15%';
     parent.appendChild(this.statusBar);
   }
 }
 
-
 class AE86 {
   constructor() { }
   run() {
-    this.loadTasks();
+    this.loadTasks().then((res) => {
+      const taskNameMap = JSON.parse(res.responseText);
+      this.initTaskStatElem(taskNameMap);
+    });
   }
   initTaskStatElem(taskNameMap) {
     for (const name in taskNameMap) {
@@ -340,11 +424,8 @@ class AE86 {
   }
   loadTasks() {
     this.pageParser = new PageParser();
-    LocalRequest.listTask(this.pageParser.toTasks()).then((res) => {
-      const taskNameMap = JSON.parse(res.responseText);
-      this.initTaskStatElem(taskNameMap);
-    });
+    return LocalRequest.listTask(this.pageParser.toTasks());
   }
 }
-const car = new AE86();
-car.run();
+const ae86 = new AE86();
+ae86.run();
