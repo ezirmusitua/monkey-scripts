@@ -1,0 +1,12 @@
+{
+  "name": "monkey-scripts",
+  "version": "1.0.0",
+  "description": "Monkey scripts for greasyfork",
+  "main": "index.js",
+  "repository": "git@github.com:ezirmusitua/monkey-scripts.git",
+  "author": "ezirmusitua <jferroal@gmail.com>",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "browserify": "^14.4.0"
+  }
+}
