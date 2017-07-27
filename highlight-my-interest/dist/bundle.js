@@ -39,18 +39,18 @@ const InterestedKeywords = [
     "书籍",
     "效率",
     "google",
-    "Nexus",
+    "nexus",
     "爬虫",
     "python",
     "angular",
     "node",
     "javascript",
     "ukulele",
-    "GTD",
+    "gtd",
     "工作流",
     "日程",
     "英雄联盟",
-    "VPS",
+    "vps",
     "服务器",
     "书单",
     "免费",
@@ -74,10 +74,16 @@ KeywordService.InterestedKeywords = InterestedKeywords;
 
 module.exports = KeywordService;
 },{}],3:[function(require,module,exports){
-let JMUL = window.JMUL;
-if (!JMUL) {
-    JMUL = {};
-}
+let JMUL = window.JMUL || {};
+const Map = (list, fn) => {
+    let result = [];
+    if (list && list.length) {
+        for (let i = 0; i < list.length; i += 1) {
+            result.push(fn(list[i]));
+        }
+    }
+    return result;
+};
 
 class TextElement {
     constructor(element) {
@@ -86,29 +92,32 @@ class TextElement {
     }
 
     detect() {
-        for (const keyword of this.keywords) {
-            if (this.element.getAttribute('innerText').indexOf(keyword) < 0) {
+        for (const keyword of TextElement.keywords) {
+            if (this.element.element.innerText.toLocaleLowerCase().indexOf(keyword) < 0) {
                 this.shouldHighlight = true;
                 break;
             }
         }
         return this;
     }
+
     highlight() {
         if (this.shouldHighlight) {
             this.element.setCss({
                 backgroundColor: '#FFDA5E',
-                color: 'black'
+                color: 'black',
             });
         }
     }
+
     static setKeywords(keywords) {
         TextElement.keywords = keywords;
     }
+
     static findAll() {
         return TextElement.targetTagNames.reduce((res, tagName) => {
             const tags = document.getElementsByTagName(tagName);
-                return res.concat(tags && tags.length && tags.map((e) => new TextElement(e)) || []);
+            return res.concat(Map(tags, (e) => new TextElement(e)));
         }, []);
     }
 }
