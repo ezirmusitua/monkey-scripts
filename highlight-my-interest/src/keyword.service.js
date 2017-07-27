@@ -20,6 +20,9 @@ const InterestedKeywords = [
     "限免",
     "数据分析",
     "自由职业",
+    "lol",
+    "react",
+    "mobx",
 ];
 
 class KeywordService {

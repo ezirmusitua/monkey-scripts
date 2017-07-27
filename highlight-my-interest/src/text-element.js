@@ -17,7 +17,8 @@ class TextElement {
 
     detect() {
         for (const keyword of TextElement.keywords) {
-            if (this.element.element.innerText.toLocaleLowerCase().indexOf(keyword) < 0) {
+            const innerText = this.element.element.innerText.toLocaleLowerCase();
+            if (innerText.indexOf(keyword) > -1) {
                 this.shouldHighlight = true;
                 break;
             }

@@ -18,20 +18,27 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 const KeywordService = require('./keyword.service');
 const TextElement = require('./text-element');
+const MaxDetectTime = 10000;
+const DetectIntervalTime = 2000;
 
 (function () {
     let alreadyLoadedTimes = 0;
+    let handledCount = 0;
     const autoMatchInterval = setInterval(() => {
-        if (alreadyLoadedTimes < 100) {
+        if (alreadyLoadedTimes < MaxDetectTime) {
+            alreadyLoadedTimes += 1;
+            const elements = TextElement.findAll();
+            if (elements.length === handledCount) return;
             KeywordService.list().then(function (keywords) {
                 TextElement.setKeywords(keywords);
-                (TextElement.findAll()).map((e) => e.detect().highlight());
+                handledCount += elements.length;
+                elements.map((e) => e.detect().highlight());
             });
         } else {
             clearInterval(autoMatchInterval);
             console.log('will no match any more');
         }
-    }, 1000);
+    }, DetectIntervalTime);
 })();
 
 },{"./keyword.service":2,"./text-element":3}],2:[function(require,module,exports){
@@ -57,6 +64,9 @@ const InterestedKeywords = [
     "限免",
     "数据分析",
     "自由职业",
+    "lol",
+    "react",
+    "mobx",
 ];
 
 class KeywordService {
@@ -93,7 +103,8 @@ class TextElement {
 
     detect() {
         for (const keyword of TextElement.keywords) {
-            if (this.element.element.innerText.toLocaleLowerCase().indexOf(keyword) < 0) {
+            const innerText = this.element.element.innerText.toLocaleLowerCase();
+            if (innerText.indexOf(keyword) > -1) {
                 this.shouldHighlight = true;
                 break;
             }
