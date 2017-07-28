@@ -7,7 +7,7 @@
 // @author              jferroal
 // @license             GPL-3.0
 // @grant               none
-// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=208357
+// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=208363
 // @include             https://sspai.com/*
 // @include             https://toutiao.io/*
 // @include             http://www.inoreader.com/*
