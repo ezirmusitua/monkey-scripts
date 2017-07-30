@@ -15,9 +15,12 @@ class BoardContainer {
 
     appendChild(children) {
         console.log(children);
-        ((children && children.length) ? children : [children]).reduce((c) => {
-            console.log('child ', c);
-            this.element.appendChild(c.element)
+        children.forEach((c) => {
+            try {
+                this.element.appendChild(c.element)
+            } catch(er) {
+                console.log(er);
+            }
         });
     }
 
@@ -75,6 +78,14 @@ class BoardEdit {
     hide() {
         this.element.setStyle('display', 'none');
     }
+
+    copyToClipboard() {
+        this.element.copyToClipboard();
+    }
+
+get value() {
+        return this.element.value();
+}
 
     static isTextarea(id) {
         return AnnotationBoardId.TEXTAREA === id;

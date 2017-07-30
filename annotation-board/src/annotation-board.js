@@ -8,10 +8,10 @@ class AnnotationBoard {
         this.textarea = new elements.Textarea();
         this.saveBtn = new elements.Button();
         this.saveBtn.listenClick(() => {
-            Selection.copyToClipboard(this.textarea);
-            request.save({
+            this.textarea.copyToClipboard();
+            this.request.save({
                 link: window.location.href,
-                raw_content: this.textarea.value(),
+                raw_content: this.textarea.value,
             });
             this.hide();
         });
