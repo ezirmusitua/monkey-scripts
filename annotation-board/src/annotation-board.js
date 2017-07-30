@@ -16,7 +16,7 @@ class AnnotationBoard {
             this.hide();
         });
         this.container.appendChild([this.textarea, this.saveBtn]);
-        this.container.appendTo(document.body);
+        this.container.element.appendTo(document.body);
         this.isShowing = false;
     }
 
@@ -27,18 +27,18 @@ class AnnotationBoard {
     }
 
     shouldShow() {
-        const isEmptySelection = !!JMUL.Element.getSelection();
+        const isEmptySelection = !!this.textarea.element.getSelection();
         return !this.isShowing && isEmptySelection;
     }
 
     hide() {
         this.isShowing = false;
-        this.container.setStyle('display', 'none');
+        this.container.hide('display', 'none');
     }
 
     shouldHide(event) {
         const target = event && event.target;
-        if (!target && this.iShowing) {
+        if (!target && this.isShowing) {
             return true;
         } else {
             const inContainer = elements.Container.isContainer(target.id);

@@ -5,7 +5,7 @@ const AnnotationBoard = require('./annotation-board');
     bindEvent();
     function bindEvent() {
         window.addEventListener('mouseup', (event) => {
-            this.handleMouseUp(event);
+            handleMouseUp(event);
         }, false);
     }
 

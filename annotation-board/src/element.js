@@ -10,11 +10,15 @@ class BoardContainer {
     constructor() {
         this.element = new JMUL.Element('div');
         this.element.setId(AnnotationBoardId.CONTAINER);
-        BoardContainer._initCss(this.element,)
+        BoardContainer._initCss(this.element)
     }
 
     appendChild(children) {
-        ((children && children.length) ? children : [children]).reduce((c) => this.element.appendChild(c));
+        console.log(children);
+        ((children && children.length) ? children : [children]).reduce((c) => {
+            console.log('child ', c);
+            this.element.appendChild(c.element)
+        });
     }
 
     updatePosition() {
@@ -55,10 +59,14 @@ class BoardEdit {
     }
 
     appendSelection() {
-        const prevVal = this.element.value;
+        const prevVal = this.element.value();
         const selectedText = this.element.getSelection();
         const newVal = (!!prevVal && (prevVal + '\n') || '') + '========' + '\n' + selectedText + '\n';
         this.element.setValue(newVal)
+    }
+
+    hide() {
+        this.element.setStyle('display', 'none');
     }
 
     static isTextarea(id) {
