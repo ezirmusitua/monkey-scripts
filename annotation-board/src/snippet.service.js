@@ -15,7 +15,7 @@ class SnippetService {
     }
 
     save(data) {
-        const request = new JMUL.Request({});
+        const request = new JMUL.Request(this.options);
         request.setMethod('POST');
         request.setUrl(this.host + ':' + this.port.toString() + '/snippet/api/v0.1.0');
         request.setData(data);

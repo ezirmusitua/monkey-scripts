@@ -27,7 +27,6 @@ class AnnotationBoard {
         this.textarea = new elements.Textarea();
         this.saveBtn = new elements.Button();
         this.saveBtn.listenClick(() => {
-            console.log(this.textarea);
             this.textarea.copyToClipboard();
             this.request.save({
                 link: window.location.href,
@@ -89,7 +88,6 @@ class BoardContainer {
     appendChild(children) {
         console.log(children);
         children.forEach((c) => {
-            console.log('child ', c);
             try {
                 this.element.appendChild(c.element)
             } catch(er) {
@@ -252,7 +250,7 @@ class SnippetService {
     }
 
     save(data) {
-        const request = new JMUL.Request({});
+        const request = new JMUL.Request(this.options);
         request.setMethod('POST');
         request.setUrl(this.host + ':' + this.port.toString() + '/snippet/api/v0.1.0');
         request.setData(data);
