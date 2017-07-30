@@ -21,10 +21,12 @@ class BoardContainer {
         });
     }
 
-    updatePosition() {
+    show() {
         try {
             const pos = JMUL.Element.getSelectedPosition();
             this.element.setCss({
+                display: 'flex',
+                flexDirection: 'column',
                 left: pos.x,
                 top: pos.y,
             });
@@ -33,15 +35,20 @@ class BoardContainer {
         }
     }
 
+    hide() {
+        this.element.setCss({
+            display: 'none',
+        });
+    }
+
     static isContainer(id) {
         return AnnotationBoardId.CONTAINER === id;
     }
 
     static _initCss(elem) {
         elem.setCss({
+            display: 'none',
             fontFamily: 'Noto',
-            display: 'flex',
-            flexDirection: 'column',
             border: '4px',
             boxShadow: '0px 3px 8px 1px rgba(0, 0, 0, 0.26)',
             position: 'absolute',

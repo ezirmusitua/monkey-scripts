@@ -22,7 +22,7 @@ class AnnotationBoard {
 
     show() {
         this.textarea.appendSelection();
-        this.container.updatePosition();
+        this.container.show();
         this.isShowing = true;
     }
 
