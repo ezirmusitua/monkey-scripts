@@ -5,6 +5,8 @@
       <w>browserify</w>
       <w>greasyfork</w>
       <w>mobx</w>
+      <w>noto</w>
+      <w>textarea</w>
     </words>
   </dictionary>
 </component>
