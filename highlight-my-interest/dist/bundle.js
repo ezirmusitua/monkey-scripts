@@ -3,7 +3,7 @@
 // @name:zh-CN          高亮关键词
 // @description         highlight keywords in my favorites
 // @description:zh-CN   高亮特定网页中感兴趣的关键词
-// @version             0.2.0
+// @version             0.2.1
 // @author              jferroal
 // @license             GPL-3.0
 // @grant               none
@@ -30,7 +30,6 @@ const DetectIntervalTime = 2000;
     function runHighlight() {
         const elements = TextElement.findAll();
         if (elements.length === highlightedCount) return;
-        console.log('highlighting');
         KeywordService.list().then((keywords) => {
             TextElement.setKeywords(keywords);
             elements.map((e) => e.detect().highlight());
