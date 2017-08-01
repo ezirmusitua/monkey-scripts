@@ -13,7 +13,7 @@ sed -i.old '1s;^;\// ==UserScript==\
 // @author              jferroal\
 // @license             GPL-3.0\
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/annotation-board.user.js\
-// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=208363\
+// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209192\
 // @include             http://*\
 // @include             https://*\
 // @grant               GM_xmlhttpRequest\
