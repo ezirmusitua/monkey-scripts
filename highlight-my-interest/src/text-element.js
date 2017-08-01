@@ -12,14 +12,14 @@ const Map = (list, fn) => {
 class TextElement {
     constructor(element) {
         this.element = new JMUL.Element(element);
+        this.innerText = this.element.innerText;
         this.shouldHighlight = false;
     }
 
     detect() {
         for (const keyword of TextElement.keywords) {
             const keywordPattern = new RegExp(keyword, 'gi');
-            const innerText = this.element.innerText;
-            if (keywordPattern.test(innerText)) {
+            if (keywordPattern.test(this.innerText)) {
                 this.shouldHighlight = true;
                 break;
             }

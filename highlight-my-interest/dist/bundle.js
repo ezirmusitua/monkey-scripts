@@ -7,7 +7,7 @@
 // @author              jferroal
 // @license             GPL-3.0
 // @grant               none
-// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=208363
+// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209192
 // @include             https://sspai.com/*
 // @include             https://toutiao.io/*
 // @include             http://www.inoreader.com/*
@@ -95,14 +95,14 @@ const Map = (list, fn) => {
 class TextElement {
     constructor(element) {
         this.element = new JMUL.Element(element);
+        this.innerText = this.element.innerText;
         this.shouldHighlight = false;
     }
 
     detect() {
         for (const keyword of TextElement.keywords) {
             const keywordPattern = new RegExp(keyword, 'gi');
-            const innerText = this.element.innerText;
-            if (keywordPattern.test(innerText)) {
+            if (keywordPattern.test(this.innerText)) {
                 this.shouldHighlight = true;
                 break;
             }
