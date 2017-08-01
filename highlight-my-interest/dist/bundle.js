@@ -22,38 +22,36 @@ const MaxDetectTime = 10000;
 const DetectIntervalTime = 2000;
 
 (function () {
-    let alreadyLoadedTimes = 0;
-    let handledCount = 0;
-    const autoMatchInterval = setInterval(() => {
-        if (alreadyLoadedTimes < MaxDetectTime) {
-            alreadyLoadedTimes += 1;
-            const elements = TextElement.findAll();
-            if (elements.length === handledCount) return;
-            KeywordService.list().then(function (keywords) {
-                TextElement.setKeywords(keywords);
-                handledCount += elements.length;
-                elements.map((e) => e.detect().highlight());
-            });
-        } else {
-            clearInterval(autoMatchInterval);
-            console.log('will no match any more');
-        }
-    }, DetectIntervalTime);
+    let highlightedCount = 0;
+    runHighlight();
+    window.addEventListener('scroll', () => {
+        runHighlight();
+    });
+    function runHighlight() {
+        const elements = TextElement.findAll();
+        if (elements.length === highlightedCount) return;
+        console.log('highlighting');
+        KeywordService.list().then((keywords) => {
+            TextElement.setKeywords(keywords);
+            elements.map((e) => e.detect().highlight());
+            highlightedCount = elements.length;
+        });
+    }
 })();
 
 },{"./keyword.service":2,"./text-element":3}],2:[function(require,module,exports){
 const InterestedKeywords = [
     "书籍",
     "效率",
-    "google",
-    "nexus",
+    "google.*?",
+    "nexus.*?",
     "爬虫",
-    "python",
-    "angular",
+    "python.*?",
+    "angular.*?",
     "node",
     "javascript",
     "ukulele",
-    "gtd",
+    /gtd.*?/gi,
     "工作流",
     "日程",
     "英雄联盟",
@@ -103,8 +101,9 @@ class TextElement {
 
     detect() {
         for (const keyword of TextElement.keywords) {
-            const innerText = this.element.element.innerText.toLocaleLowerCase();
-            if (innerText.indexOf(keyword) > -1) {
+            const keywordPattern = new RegExp(keyword, 'gi');
+            const innerText = this.element.innerText;
+            if (keywordPattern.test(innerText)) {
                 this.shouldHighlight = true;
                 break;
             }

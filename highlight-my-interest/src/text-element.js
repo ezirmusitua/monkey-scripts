@@ -17,8 +17,9 @@ class TextElement {
 
     detect() {
         for (const keyword of TextElement.keywords) {
-            const innerText = this.element.element.innerText.toLocaleLowerCase();
-            if (innerText.indexOf(keyword) > -1) {
+            const keywordPattern = new RegExp(keyword, 'gi');
+            const innerText = this.element.innerText;
+            if (keywordPattern.test(innerText)) {
                 this.shouldHighlight = true;
                 break;
             }
