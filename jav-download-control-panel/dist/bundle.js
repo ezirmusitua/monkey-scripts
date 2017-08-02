@@ -15,419 +15,539 @@
 // ==/UserScript==
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// local request client
-class LocalRequest {
-  static get baseUri() {
-    return 'http://localhost:5000/downloader/api/v0.1.0/task';
-  }
-  static request(method, url, data, onload) {
-    return new Promise((resolve, reject) => {
-      const payload = {
-        url,
-        headers: { "Content-Type": "application/json" },
-        onerror: function (response) {
-          console.log('something wrong while start download task. ');
-          reject(response);
-        },
-        ontimeout: function (response) {
-          console.log('request timeout! ');
-          reject(response.response);
-        },
-        onabort: function (response) {
-          console.log('request aborted. ');
-          reject(response.response);
-        }
-      };
-      if (method) {
-        payload.method = method;
-      } else {
-        payload.method = 'GET';
-      }
-      if (data && method === 'POST' || method === 'PUT') {
-        payload.data = data;
-      }
-      if (onload) {
-        payload.onload = onload;
-      } else {
-        payload.onload = (response) => {
-          resolve(response);
-        };
-      }
-      return GM_xmlhttpRequest(payload);
-    });
-  }
-  static startTask(task) {
-    return LocalRequest.request('POST', LocalRequest.baseUri, JSON.stringify(task));
-  }
-  static listTask(tasks) {
-    const queryStr = tasks.join(';');
-    return LocalRequest.request('GET', LocalRequest.baseUri + '?names=' + queryStr);
-  }
-}
+const JMElement = window.JMUL.Element || {};
+const {ClickActionFactory} = require('./elements.logic');
 
-// parse page while page load
-class PageParser {
-  constructor() {
-    const currentHref = window.location.href;
-    if (/http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(currentHref)) {
-      this.type = 'single';
-    } else if (/http:\/\/www\.javlibrary\.com\/cn\/vl_.*/.test(currentHref)) {
-      this.type = 'video';
-    } else {
-      this.type = 'home';
+class PanelButton {
+    constructor(type, label) {
+        this.type = type;
+        this.btn = new JMElement('button');
+        this.btn.setInnerText(label);
+        this.initStyle();
+        this.bindClick();
     }
-    if (this.type === 'single') {
-      this.targetElements = [document.getElementById('video_id')];
-    } else if (this.type === 'video') {
-      this.targetElements = document.getElementsByClassName('video') || [];
-    } else {
-      this.targetElements = document.getElementsByClassName('post-headline') || [];
-    }
-  }
-  toTasks() {
-    if (this.tasks && this.tasks.length) {
-      return this.tasks;
-    }
-    this.tasks = [];
-    for (let i = 0; i < this.targetElements.length; i += 1) {
-      const elem = this.targetElements[i];
-      if (this.type === 'single') {
-        this.tasks.push(elem.children[0].children[0].children[0].children[1].textContent);
-      } else if (this.type === 'video') {
-        this.tasks.push(elem.children[0].children[0].textContent);
-      } else {
-        this.tasks.push(elem.children[0].textContent);
-      }
-    }
-    return this.tasks;
-  }
-  get nameElemMap() {
-    if (this._nameElemMap) {
-      return this._nameElemMap;
-    }
-    this._nameElemMap = {};
-    for (let i = 0; i < this.targetElements.length; i += 1) {
-      const elem = this.targetElements[i];
-      if (this.type === 'single') {
-        const name = elem.children[0].children[0].children[0].children[1].textContent;
-        this._nameElemMap[name] = {
-          progressBarParent: elem,
-          statusBarParent: elem.children[0].children[0].children[0].children[1],
-        };
-      } else if (this.type === 'video') {
-        const name = elem.children[0].children[0].textContent;
-        this._nameElemMap[name] = {
-          progressBarParent: elem,
-          statusBarParent: elem.children[0].children[0],
-        };
-      } else {
-        const name = elem.children[0].textContent;
-        this._nameElemMap[name] = {
-          progressBarParent: elem,
-          statusBarParent: elem.children[0],
-        };
-      }
-    }
-    return this._nameElemMap;
-  }
-}
 
-// Search result from tokyotosho
-class TokyoToShoRequest {
-  static get headers() {
-    return {
-      ':authority': 'www.tokyotosho.info',
-      ':method': 'GET',
-      ':path': `/search.php?terms=${this.target}`,
-      ':scheme': 'https',
-      'accept': 'text / html, application/xhtml+xml,application/xml;q=0.9, image/webp,*/*;q=0.8',
-      'accept-encoding;': 'gzip, deflate, sdch, br',
-      'accept-language': 'zh-CN, en-US;q=0.8, en;q=0.6, zh;q=0.4',
-      'cache-control': 'no-cache',
-    };
-  }
-  static get baseUri() {
-    return 'https://www.tokyotosho.info/search.php?terms=';
-  }
-  static search(target) {
-    return new Promise((resolve, reject) => {
-      return GM_xmlhttpRequest({
-        method: "GET",
-        url: TokyoToShoRequest.baseUri + target,
-        headers: TokyoToShoRequest.headers,
-        onload: function (response) {
-          resolve(response.response);
-        },
-        onerror: function (response) {
-          console.log('something wrong while searching. ');
-          reject(response.response);
-        },
-        ontimeout: function (response) {
-          console.log('request timeout! ');
-          reject(response.response);
-        },
-        onabort: function (response) {
-          console.log('request aborted. ');
-          reject(response.response);
-        }
-      });
-    })
-  }
-}
-
-class TokyoToShoMatcher {
-  constructor(pageContent) {
-    this.pageContent = pageContent;
-    this.magnetLinkPattern = /<a href="(magnet:\?xt=urn:btih:.*?)">/gi;
-    this.seederCountPattern = /S: <span style="color: .*?">(\d+)<\/span>/gi;
-    this.leederCountPattern = /L: <span style="color: .*?">(\d+)<\/span>/gi;
-    this.completedCountPattern = /C: <span style="color: .*?">(\d+)<\/span>/gi;
-    this.sizePattern = /\| Size: (.*?) \|/gi;
-  }
-  matchAll() {
-    const result = [];
-    let [mlMatch, scMatch, lcMatch, ccMatch, szMatch] = [undefined, undefined, undefined, undefined, undefined];
-    do {
-      [mlMatch, scMatch, lcMatch, ccMatch, szMatch] = [
-        this.magnetLinkPattern.exec(this.pageContent),
-        this.seederCountPattern.exec(this.pageContent),
-        this.leederCountPattern.exec(this.pageContent),
-        this.completedCountPattern.exec(this.pageContent),
-        this.sizePattern.exec(this.pageContent),
-      ];
-      if (mlMatch) {
-        result.push({
-          link: mlMatch[1].trim(),
-          sCount: scMatch[1],
-          lCount: lcMatch[1],
-          cCount: ccMatch[1],
-          size: (szMatch && szMatch[1]) || '0MB',
+    initStyle() {
+        this.btn.setCss({
+            width: '22px',
+            height: '22px',
+            boxSizing: 'border-box',
+            marginLeft: '4px',
+            cursor: 'pointer',
         });
-      }
-    } while (mlMatch);
-    this.magnetLinkPattern.index = this.seederCountPattern.index = this.leederCountPattern.index = this.completedCountPattern.index = this.sizePattern.index = 0;
-    return result;
-  }
-}
-
-class SearchResultFilter {
-  constructor(magnets) {
-    if (!magnets) {
-      this.magnets = [];
-    } else {
-      this.magnets = magnets;
     }
-    this.bestOne = this.magnets.reduce((best, magnet) => {
-      const current = {
-        link: magnet.link,
-        score: (magnet.sCount || 0) * 10 + (magnet.cCount || 0) * 5 + (magnet.lCount || 0) * 2,
-        size: parseInt(magnet.size.slice(0, -2), 10) * (magnet.size.indexOf('GB') > -1 ? 1000 : 1),
-      };
-      if (current.score < best.score) return best;
-      const size = parseInt(magnet.size.slice(0, -2), 10) * (magnet.size.indexOf('GB') > -1 ? 1000 : 1);
-      if (current.score > best.score) return current;
-      if (current.size < best.size) return best;
-      return current;
-    }, { link: '', score: 0, size: 0 });
-  }
-  best() {
-    return this.bestOne;
-  }
+
+    bindClick(task) {
+        const gfn = new ClickActionFactory.create(this.type)(task).cb;
+        this.btn.listen('click', (e) => gfn(e, task));
+    }
+
+    updateCss(styles) {
+        this.btn.setCss(styles);
+    }
+
+    appendTo(parent) {
+        return this.btn.appendTo(parent);
+    }
 }
 
-// Status and progress bar
-class DownloadOperationBtnStyle {
-  static basic(elementStyle) {
-    elementStyle.width = '22px';
-    elementStyle.height = '22px';
-    elementStyle.boxSizing = 'border-box';
-    elementStyle.marginLeft = '4px';
-    elementStyle.cursor = 'pointer';
-  }
-  static unknown(elementStyle) {
-    DownloadOperationBtnStyle.basic(elementStyle);
-    elementStyle.color = 'white';
-    elementStyle.backgroundColor = 'grey';
-    elementStyle.borderRadius = '50%';
-    elementStyle.padding
-  }
-  static active(elementStyle) {
-    DownloadOperationBtnStyle.basic(elementStyle);
-    // elementStyle.backgroundColor = 'green';
-  }
-  static waiting(elementStyle) {
-    DownloadOperationBtnStyle.basic(elementStyle);
-    // elementStyle.backgroundColor = 'green';
-  }
-  static paused(elementStyle) {
-    DownloadOperationBtnStyle.basic(elementStyle);
-    // elementStyle.backgroundColor = 'orange';
-  }
-  static removed(elementStyle) {
-    DownloadOperationBtnStyle.basic(elementStyle);
-    // elementStyle.backgroundColor = 'red';
-  }
-  static complete(elementStyle) {
-    DownloadOperationBtnStyle.basic(elementStyle);
-    // elementStyle.backgroundColor = 'red';
-    elementStyle.pointer = 'default';
-  }
-  static error(elementStyle) {
-    DownloadOperationBtnStyle.basic(elementStyle);
-    // elementStyle.backgroundColor = 'red';
-  }
-};
+class PanelButtonFactory {
+    constructor() {}
+    static create(type) {
+        switch (type) {
+            case 'active':
+                return new PanelButton(type, '⏩');
+            case 'waiting':
+                return new PanelButton(type, '•');
+            case 'Paused':
+                return new PanelButton(type, '⏸');
+            case 'Removed':
+                return new PanelButton(type, '⌦');
+            case 'Completed':
+                return new PanelButton(type, '🛆');
+            case 'Error':
+                return new PanelButton(type, '❌');
+            case 'unknown':
+            default:
+                const button = new PanelButton(type, '?');
+                button.updateCss({
+                    color: 'white',
+                    backgroundColor: 'grey',
+                    borderRadius: '50%',
+                });
+                return button;
+        }
+    }
+}
 
-const DownloadOperationBtnText = {
-  unknown: '⸮',
-  active: '⏩',
-  waiting: '•',
-  paused: '⏸',
-  removed: '⌦',
-  complete: '🛆',
-  error: '❌',
-};
+PanelButton.instance = undefined;
 
 const TaskStatusBtnCandidates = {
-  'unknown': ['unknown'],
-  'active': ['paused', 'removed'],
-  'waiting': ['removed'],
-  'paused': ['active', 'removed'],
-  'removed': ['active'],
-  'complete': ['active', 'complete'],
-  'error': ['error'],
+    'unknown': ['unknown'],
+    'active': ['paused', 'removed'],
+    'waiting': ['removed'],
+    'paused': ['active', 'removed'],
+    'removed': ['active'],
+    'complete': ['active', 'complete'],
+    'error': ['error'],
 };
 
-const TaskOperation = {
-  unknown: (task) => {
-    return (event) => {
-      event.preventDefault();
-      TokyoToShoRequest.search(task.name).then((response) => {
-        const magnets = (new TokyoToShoMatcher(response)).matchAll();
-        if (magnets && magnets.length) {
-          const best = (new SearchResultFilter(magnets)).best();
-          LocalRequest.startTask({ name: task.name, uri: best.link });
-        } else {
-          alert('无可用资源');
+class Panel {
+    constructor(task) {
+        this.element = new JMElement('section');
+        this.initStyles();
+        this.initButton(task);
+    }
+
+    initStyles() {
+        this.element.setCss({
+            display: 'flex',
+            margin: '-4px 0',
+        });
+    }
+
+    initButton(task) {
+        for (const type of TaskStatusBtnCandidates[task.status]) {
+            const button = PanelButtonFactory.create(type);
+            button.bindClick(task);
+            button.appendTo(this.element);
         }
-      });
     }
-  },
-  active: (task) => {
-    return (event) => {
-      console.log('resume');
+
+    appendTo(parent) {
+        parent.style.display = 'flex';
+        parent.style.margin = '4px 15%';
+        parent.appendChild(this.element);
     }
-  },
-  waiting: (task) => {
-    return (event) => {
-      event.preventDefault();
-      console.log('error');
+}
+
+class ProgressBar {
+    constructor(task) {
+        const percentage = (task.completedLength / task.totalLength) * 100;
+        this.element = new JMElement('div');
+        this.already = new JMElement('div');
+        this.initStyles(percentage);
+        this.element.appendChild(this.already);
     }
-  },
-  paused: (task) => {
-    return (event) => {
-      event.preventDefault();
-      console.log('error');
+
+    initStyles(percentage) {
+        this.element.setCss({
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '4px',
+            backgroundColor: 'grey',
+        });
+        this.already.setCss({
+            width: percentage + '%',
+            height: 'inherit',
+            backgroundColor: 'green',
+        })
     }
-  },
-  removed: (task) => {
-    return (event) => {
-      event.preventDefault();
-      console.log('error');
+
+    appendTo(parent) {
+        return this.element.appendTo(parent);
     }
-  },
-  error: (task) => {
-    return (event) => {
-      event.preventDefault();
-      console.log('error');
+}
+
+module.exports = {ProgressBar, Panel};
+},{"./elements.logic":2}],2:[function(require,module,exports){
+const {TokyoToSho, TaskPanel} = require('./requests');
+
+class UnknownClickAction {
+    constructor(task) {
+        this.task = task;
     }
-  },
-  complete: (task) => {
-    return (event) => {
-      event.preventDefault();
-      console.log('error');
+
+    get cb() {
+        return (event) => {
+            event.preventDefault();
+            new TokyoToSho().search(this.task.name).then((response) => {
+                const magnets = (new TokyoToShoMatcher(response)).matchAll();
+                if (magnets && magnets.length) {
+                    this.task.chooseBestMagnet(magnets);
+                    new TaskPanel().start({name: this.task.name, uri: this.task.link});
+                } else {
+                    alert('无可用资源');
+                }
+            });
+        }
     }
-  },
+}
+
+class ActiveClickAction {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
+            event.preventDefault();
+            console.log('resume');
+        }
+    }
+}
+
+class WaitingClickAction {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
+            event.preventDefault();
+            console.log('resume');
+        }
+    }
+}
+
+class PausedClickAction {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
+            event.preventDefault();
+            console.log('resume');
+        }
+    }
+}
+
+class RemovedClickAction {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
+            event.preventDefault();
+            console.log('resume');
+        }
+    }
+}
+
+class ErrorClickAction {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
+            event.preventDefault();
+            console.log('resume');
+        }
+    }
+}
+
+class CompletedClickAction {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
+            event.preventDefault();
+            console.log('resume');
+        }
+    }
+}
+
+class ClickActionFactory {
+    constructor() {
+    }
+
+    static create(type, task) {
+        if (!ClickActionFactory.caches[type]) {
+            switch (type) {
+                case 'active':
+                    ClickActionFactory.caches[type] = ActiveClickAction;
+                    break;
+                case 'waiting':
+                    ClickActionFactory.caches[type] = WaitingClickAction;
+                    break;
+                case 'Paused':
+                    ClickActionFactory.caches[type] = PausedClickAction;
+                    break;
+                case 'Removed':
+                    ClickActionFactory.caches[type] = RemovedClickAction;
+                    break;
+                case 'Completed':
+                    ClickActionFactory.caches[type] = CompletedClickAction;
+                    break;
+                case 'Error':
+                    ClickActionFactory.caches[type] = ErrorClickAction;
+                    break;
+                case 'unknown':
+                default:
+                    ClickActionFactory.caches[type] = new UnknownClickAction();
+            }
+        }
+        return ClickActionFactory.caches[type];
+    }
+}
+
+ClickActionFactory.caches = {};
+
+module.exports = {ClickActionFactory};
+},{"./requests":4}],3:[function(require,module,exports){
+const {Utils} = require('./utils');
+const {TaskPanel} = require('./requests');
+const {Panel, ProgressBar} = require('./elements');
+const {Task} = require('./task');
+
+(function () {
+    const tasks = Utils.generateTasks();
+    init();
+    function init() {
+        new TaskPanel().list(Task.joinName(tasks)).then(function (res) {
+            const serverTaskNameMap = JSON.parse(res);
+            tasks.forEach((task) => {
+                task.setServerStatus(serverTaskNameMap[task.name]);
+                const statusBar = new Panel(task);
+                statusBar.appendTo(task.panelParent);
+                const progressBar = new ProgressBar(task);
+                progressBar.appendTo(task.progressBarParent);
+            })
+        });
+    }
+}());
+
+
+},{"./elements":1,"./requests":4,"./task":5,"./utils":6}],4:[function(require,module,exports){
+// Search result from tokyotosho
+const {Request, Header} = window.JMUL || {Request: {}, Header: {}};
+const {Task} = require('./task');
+
+class TokyoToSho {
+    constructor(_options = {}) {
+        if (!TokyoToSho.instance) {
+            this.options = _options;
+            this.initHeaders();
+            this.host = 'https://www.tokyotosho.info';
+            TokyoToSho.instance = this;
+        }
+        return TokyoToSho.instance;
+    }
+
+    initHeaders() {
+        this.options.headers = new Header({
+            ':authority': 'www.tokyotosho.info',
+            ':scheme': 'https',
+            'accept': 'text / html, application/xhtml+xml,application/xml;q=0.9, image/webp,*/*;q=0.8',
+            'accept-encoding;': 'gzip, deflate, sdch, br',
+            'accept-language': 'zh-CN, en-US;q=0.8, en;q=0.6, zh;q=0.4',
+            'cache-control': 'no-cache',
+        });
+    }
+
+    search(target) {
+        const request = new Request(this.options);
+        request.setMethod('GET');
+        request.setUrl(this.host + `/search.php?terms=${target}`, ``);
+        return request.send();
+    }
+}
+
+TokyoToSho.instance = undefined;
+
+class TaskPanel {
+    constructor(_options = {}) {
+        if (!TaskPanel.instance) {
+            this.options = _options;
+            this.initHeaders();
+            this.host = 'http://localhost:5000/downloader/api/v0.1.0/task';
+            TaskPanel.instance = this;
+        }
+        return TaskPanel.instance;
+    }
+
+    initHeaders() {
+        this.options.headers = new Header({'Content-Type': 'application/json'});
+    }
+
+    start(task) {
+        const request = new Request();
+        request.setMethod('GET');
+        request.setUrl(this.host);
+        request.setData(task.json());
+        return request.send();
+    }
+
+    list(tasks) {
+        const nameStr = Task.joinName(tasks);
+        const request = new Request();
+        request.setMethod('POST');
+        request.setUrl(`${this.host}?names=${nameStr}`);
+        return request.send();
+    }
+}
+
+TaskPanel.instance = undefined;
+
+
+module.exports = {TokyoToSho, TaskPanel};
+
+},{"./task":5}],5:[function(require,module,exports){
+const {JMElement} = window.JMUL || {JMElement: {}};
+
+class Task {
+    constructor(name = '') {
+        this.name = name;
+    }
+
+    setName(name) {
+        this.name = name;
+    }
+
+    setPanelParent(el) {
+        this.panelParent = new JMElement(el);
+    }
+
+    setProgressBarParent(el) {
+        this.progressBarParent = new JMElement(el);
+    }
+
+    setMagnetLink(magnet) {
+        this.link = magnet;
+    }
+
+    chooseBestMagnet(magnets) {
+        this.setMagnetLink(magnets.reduce((best, magnet) => {
+            const current = {
+                link: magnet.link,
+                score: (magnet.sCount || 0) * 10 + (magnet.cCount || 0) * 5 + (magnet.lCount || 0) * 2,
+                size: parseInt(magnet.size.slice(0, -2), 10) * (magnet.size.indexOf('GB') > -1 ? 1000 : 1),
+            };
+            if (current.score < best.score) return best;
+            if (current.score > best.score) return current;
+            if (current.size < best.size) return best;
+            return current;
+        }, {link: '', score: 0, size: 0}));
+    }
+
+    setServerStatus(serverTask) {
+        this.completedLength = serverTask.completedLength;
+        this.totalLength = serverTask.totalLength;
+        this.status = serverTask.status;
+    }
+
+    static joinName(tasks) {
+        return tasks.reduce((res, t) => res += t.name + ';', '');
+    }
+
+    static fromSingleElem(elem) {
+        const task = new Task();
+        task.setName(elem.children[0].children[0].children[0].children[1].textContent);
+        task.setPanelParent(elem);
+        task.setProgressBarParent(elem.children[0].children[0].children[0].children[1]);
+    }
+
+    static fromListElem(elem) {
+        const task = new Task();
+        task.setName(elem.children[0].children[0].textContent);
+        task.setPanelParent(elem);
+        task.setProgressBarParent(elem.children[0].children[0]);
+        return task;
+    }
+
+    static fromHomeElem(elem) {
+        const task = new Task();
+        task.setName(elem.children[0].textContent);
+        task.setPanelParent(elem);
+        task.setProgressBarParent(elem.children[0]);
+        return task;
+    }
+}
+
+module.exports = {Task};
+},{}],6:[function(require,module,exports){
+const {Task} = require('./task');
+
+const PageType = {
+    SINGLE_VIEW: 100,
+    VIDEO_LIST: 200,
+    HOMEPAGE: 300,
 };
 
-class DownloadOperationBtn {
-  constructor(status) {
-    this.btn = document.createElement('div');
-    DownloadOperationBtnStyle[status](this.btn.style);
-    this.btn.textContent = DownloadOperationBtnText[status];
-  }
-  bind(action, fn) {
-    this.btn.addEventListener(action, fn);
-    return this;
-  }
-  appendTo(parent) {
-    parent.appendChild(this.btn);
-  }
-}
-
-class TaskProgressBar {
-  constructor(task) {
-    const percentage = (task.completedLength / task.totalLength) * 100;
-    this.progressBar = document.createElement('div');
-    this.progressBar.style.position = 'absolute';
-    this.progressBar.style.top = this.progressBar.style.left = '0';
-    this.progressBar.style.width = '100%';
-    this.progressBar.style.height = '4px';
-    this.progressBar.style.backgroundColor = 'grey';
-    const alreadyProgress = document.createElement('div');
-    alreadyProgress.style.width = percentage + '%';
-    alreadyProgress.style.height = 'inherit';
-    alreadyProgress.style.backgroundColor = 'green';
-    this.progressBar.appendChild(alreadyProgress);
-  }
-  appendTo(parent) {
-    parent.appendChild(this.progressBar);
-  }
-}
-
-class TaskStatusBar {
-  constructor(task) {
-    this.statusBar = document.createElement('section');
-    this.statusBar.style.display = 'flex';
-    this.statusBar.style.margin = '-4px 0';
-    for (const cand of TaskStatusBtnCandidates[task.status]) {
-      const btn = new DownloadOperationBtn(cand);
-      btn.bind('click', TaskOperation[cand](task)).appendTo(this.statusBar);
+class Utils {
+    static pageType() {
+        const currentHref = window.location.href;
+        if (/http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(currentHref)) {
+            return PageType.SINGLE_VIEW;
+        }
+        if (/http:\/\/www\.javlibrary\.com\/cn\/vl_.*/.test(currentHref)) {
+            return PageType.VIDEO_LIST;
+        }
+        return PageType.HOMEPAGE;
     }
-  }
-  appendTo(parent) {
-    parent.style.display = 'flex';
-    parent.style.margin = '4px 15%';
-    parent.appendChild(this.statusBar);
-  }
-}
 
-class AE86 {
-  constructor() { }
-  run() {
-    this.loadTasks().then((res) => {
-      const taskNameMap = JSON.parse(res.responseText);
-      this.initTaskStatElem(taskNameMap);
-    });
-  }
-  initTaskStatElem(taskNameMap) {
-    for (const name in taskNameMap) {
-      if (taskNameMap.hasOwnProperty(name)) {
-        const task = taskNameMap[name];
-        const relatedElem = this.pageParser.nameElemMap[name];
-        const statusBar = new TaskStatusBar(task);
-        statusBar.appendTo(relatedElem.statusBarParent);
-        const progressBar = new TaskProgressBar(task);
-        progressBar.appendTo(relatedElem.progressBarParent);
-      }
+    static getTaskElements(_type) {
+        const type = _type || Utils.pageType();
+        switch (type) {
+            case PageType.SINGLE_VIEW:
+                return [document.getElementById('video_id')];
+            case PageType.VIDEO_LIST:
+                return document.getElementsByClassName('video') || [];
+            case PageType.HOMEPAGE:
+            default:
+                return document.getElementsByClassName('post-headline') || [];
+        }
     }
-  }
-  loadTasks() {
-    this.pageParser = new PageParser();
-    return LocalRequest.listTask(this.pageParser.toTasks());
-  }
-}
-const ae86 = new AE86();
-ae86.run();
 
-},{}]},{},[1]);
+    static generateTasks(_type) {
+        const type = _type || Utils.pageType();
+        const elements = Utils.getTaskElements(type);
+        return elements.reduce((res, e) => {
+            switch (type) {
+                case PageType.SINGLE_VIEW:
+                    res.push(Task.fromSingleElem(e));
+                    break;
+                case PageType.VIDEO_LIST:
+                    res.push(Task.fromListElem(e));
+                    break;
+                case PageType.HOMEPAGE:
+                default:
+                    res.push(Task.fromHomeElem(e));
+                    break;
+            }
+            return res;
+        }, []);
+    }
+}
+
+Utils.PageType = PageType;
+Utils.TokyoToShoParser = class TokyoToShoParser {
+    constructor(pageContent) {
+        this.pageContent = pageContent;
+        this.magnetLinkPattern = /<a href="(magnet:\?xt=urn:btih:.*?)">/gi;
+        this.seederCountPattern = /S: <span style="color: .*?">(\d+)<\/span>/gi;
+        this.leederCountPattern = /L: <span style="color: .*?">(\d+)<\/span>/gi;
+        this.completedCountPattern = /C: <span style="color: .*?">(\d+)<\/span>/gi;
+        this.sizePattern = /\| Size: (.*?) \|/gi;
+    }
+
+    matchAll() {
+        const result = [];
+        let [mlMatch, scMatch, lcMatch, ccMatch, szMatch] = [undefined, undefined, undefined, undefined, undefined];
+        do {
+            [mlMatch, scMatch, lcMatch, ccMatch, szMatch] = [
+                this.magnetLinkPattern.exec(this.pageContent),
+                this.seederCountPattern.exec(this.pageContent),
+                this.leederCountPattern.exec(this.pageContent),
+                this.completedCountPattern.exec(this.pageContent),
+                this.sizePattern.exec(this.pageContent),
+            ];
+            if (mlMatch) {
+                result.push({
+                    link: mlMatch[1].trim(),
+                    sCount: scMatch[1],
+                    lCount: lcMatch[1],
+                    cCount: ccMatch[1],
+                    size: (szMatch && szMatch[1]) || '0MB',
+                });
+            }
+        } while (mlMatch);
+        this.magnetLinkPattern.index = this.seederCountPattern.index = this.leederCountPattern.index = 0;
+        this.completedCountPattern.index = this.sizePattern.index = 0;
+        return result;
+    }
+};
+
+module.exports = {Utils};
+},{"./task":5}]},{},[3]);

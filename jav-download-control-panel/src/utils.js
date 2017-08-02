@@ -90,4 +90,4 @@ Utils.TokyoToShoParser = class TokyoToShoParser {
     }
 };
 
-module.exports = {Utils};s
+module.exports = {Utils};

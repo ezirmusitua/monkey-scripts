@@ -75,7 +75,7 @@ const TaskStatusBtnCandidates = {
     'error': ['error'],
 };
 
-class TaskStatusBar {
+class Panel {
     constructor(task) {
         this.element = new JMElement('section');
         this.initStyles();
@@ -104,7 +104,7 @@ class TaskStatusBar {
     }
 }
 
-class TaskProgressBar {
+class ProgressBar {
     constructor(task) {
         const percentage = (task.completedLength / task.totalLength) * 100;
         this.element = new JMElement('div');
@@ -134,4 +134,4 @@ class TaskProgressBar {
     }
 }
 
-module.exports = {TaskProgressBar, TaskStatusBar};
+module.exports = {ProgressBar, Panel};
