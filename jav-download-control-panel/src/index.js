@@ -1,28 +1,20 @@
-// parse page while page load
-class AE86 {
-  constructor() { }
-  run() {
-    this.loadTasks().then((res) => {
-      const taskNameMap = JSON.parse(res.responseText);
-      this.initTaskStatElem(taskNameMap);
-    });
-  }
-  initTaskStatElem(taskNameMap) {
-    for (const name in taskNameMap) {
-      if (taskNameMap.hasOwnProperty(name)) {
-        const task = taskNameMap[name];
-        const relatedElem = this.pageParser.nameElemMap[name];
-        const statusBar = new TaskStatusBar(task);
-        statusBar.appendTo(relatedElem.statusBarParent);
-        const progressBar = new TaskProgressBar(task);
-        progressBar.appendTo(relatedElem.progressBarParent);
-      }
+const {Utils} = require('./utils');
+const {TaskPanel} = require('./request');
+
+(function () {
+    const tasks = Utils.generateTasks();
+    init();
+    function init() {
+        TaskPanel.list().then(function (res) {
+            const serverTaskNameMap = JSON.parse(res);
+            tasks.forEach((task) => {
+                task.setServerStatus(serverTaskNameMap[task.name]);
+                const statusBar = new TaskStatusBar(task);
+                statusBar.appendTo(task.panelParent);
+                const progressBar = new TaskProgressBar(task);
+                progressBar.appendTo(task.progressBarParent);
+            })
+        });
     }
-  }
-  loadTasks() {
-    this.pageParser = new PageParser();
-    return LocalRequest.listTask(this.pageParser.toTasks());
-  }
-}
-const ae86 = new AE86();
-ae86.run();
+}());
+

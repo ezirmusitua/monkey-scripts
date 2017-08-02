@@ -1,3 +1,5 @@
+const {JMElement} = window.JMUL || {JMElement: {}};
+
 class Task {
     constructor(name = '') {
         this.name = name;
@@ -8,19 +10,19 @@ class Task {
     }
 
     setPanelParent(el) {
-        this.panelParent = el;
+        this.panelParent = new JMElement(el);
     }
 
     setProgressBarParent(el) {
-        this.progressBarParent = el;
+        this.progressBarParent = new JMElement(el);
     }
 
-    setMagnent(magnent) {
-        this.magnent = magnent;
+    setMagnetLink(magnet) {
+        this.link = magnet;
     }
 
-    static calcScore(ttRes) {
-        return ttRes.reduce((best, magnet) => {
+    chooseBestMagnet(magnets) {
+        this.setMagnetLink(magnets.reduce((best, magnet) => {
             const current = {
                 link: magnet.link,
                 score: (magnet.sCount || 0) * 10 + (magnet.cCount || 0) * 5 + (magnet.lCount || 0) * 2,
@@ -30,7 +32,13 @@ class Task {
             if (current.score > best.score) return current;
             if (current.size < best.size) return best;
             return current;
-        }, {link: '', score: 0, size: 0});
+        }, {link: '', score: 0, size: 0}));
+    }
+
+    setServerStatus(serverTask) {
+        this.completedLength = serverTask.completedLength;
+        this.totalLength = serverTask.totalLength;
+        this.status = serverTask.status;
     }
 
     static joinName(tasks) {

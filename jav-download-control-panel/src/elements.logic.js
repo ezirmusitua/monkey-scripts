@@ -2,13 +2,17 @@ const {TokyoToSho, TaskPanel} = require('./requests');
 
 class UnknownClickAction {
     constructor(task) {
-        this.fn = (event) => {
+        this.task = task;
+    }
+
+    get cb() {
+        return (event) => {
             event.preventDefault();
-            new TokyoToSho().search(task.name).then((response) => {
+            new TokyoToSho().search(this.task.name).then((response) => {
                 const magnets = (new TokyoToShoMatcher(response)).matchAll();
                 if (magnets && magnets.length) {
-                    const best = (new SearchResultFilter(magnets)).best();
-                    new TaskPanel().start({name: task.name, uri: best.link});
+                    this.task.chooseBestMagnet(magnets);
+                    new TaskPanel().start({name: this.task.name, uri: this.task.link});
                 } else {
                     alert('无可用资源');
                 }
@@ -18,8 +22,11 @@ class UnknownClickAction {
 }
 
 class ActiveClickAction {
-    constructor() {
-        this.fn = (event) => {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
             event.preventDefault();
             console.log('resume');
         }
@@ -27,47 +34,62 @@ class ActiveClickAction {
 }
 
 class WaitingClickAction {
-    constructor() {
-        this.fn = (event) => {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
             event.preventDefault();
-            console.log('waiting');
+            console.log('resume');
         }
     }
 }
 
 class PausedClickAction {
-    constructor() {
-        this.fn = (event) => {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
             event.preventDefault();
-            console.log('paused');
-        };
+            console.log('resume');
+        }
     }
 }
 
 class RemovedClickAction {
-    constructor() {
-        this.fn = (event) => {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
             event.preventDefault();
-            console.log('error');
-        };
+            console.log('resume');
+        }
     }
 }
 
 class ErrorClickAction {
-    constructor() {
-        this.fn = (event) => {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
             event.preventDefault();
-            console.log('error');
-        };
+            console.log('resume');
+        }
     }
 }
 
 class CompletedClickAction {
-    constructor() {
-        this.fn = (event) => {
+    constructor(task) {
+        this.task = task;
+    }
+    get cb() {
+        return (event) => {
             event.preventDefault();
-            console.log('error');
-        };
+            console.log('resume');
+        }
     }
 }
 
@@ -75,26 +97,26 @@ class ClickActionFactory {
     constructor() {
     }
 
-    static create(type) {
+    static create(type, task) {
         if (!ClickActionFactory.caches[type]) {
             switch (type) {
                 case 'active':
-                    ClickActionFactory.caches[type] = new ActiveClickAction();
+                    ClickActionFactory.caches[type] = ActiveClickAction;
                     break;
                 case 'waiting':
-                    ClickActionFactory.caches[type] = new WaitingClickAction();
+                    ClickActionFactory.caches[type] = WaitingClickAction;
                     break;
                 case 'Paused':
-                    ClickActionFactory.caches[type] = new PausedClickAction();
+                    ClickActionFactory.caches[type] = PausedClickAction;
                     break;
                 case 'Removed':
-                    ClickActionFactory.caches[type] = new RemovedClickAction();
+                    ClickActionFactory.caches[type] = RemovedClickAction;
                     break;
                 case 'Completed':
-                    ClickActionFactory.caches[type] = CompletedClickAction();
+                    ClickActionFactory.caches[type] = CompletedClickAction;
                     break;
                 case 'Error':
-                    ClickActionFactory.caches[type] = new ErrorClickAction();
+                    ClickActionFactory.caches[type] = ErrorClickAction;
                     break;
                 case 'unknown':
                 default:
