@@ -1,4 +1,4 @@
-const {TokyoToSho, Panel} = require('./requests');
+const {TokyoToSho, TaskPanel} = require('./requests');
 
 class UnknownClickAction {
     constructor(task) {
@@ -8,7 +8,7 @@ class UnknownClickAction {
                 const magnets = (new TokyoToShoMatcher(response)).matchAll();
                 if (magnets && magnets.length) {
                     const best = (new SearchResultFilter(magnets)).best();
-                    LocalRequest.startTask({name: task.name, uri: best.link});
+                    new TaskPanel().start({name: task.name, uri: best.link});
                 } else {
                     alert('无可用资源');
                 }
@@ -72,7 +72,8 @@ class CompletedClickAction {
 }
 
 class ClickActionFactory {
-    constructor() {}
+    constructor() {
+    }
 
     static create(type) {
         if (!ClickActionFactory.caches[type]) {
@@ -105,3 +106,5 @@ class ClickActionFactory {
 }
 
 ClickActionFactory.caches = {};
+
+module.exports = {ClickActionFactory};

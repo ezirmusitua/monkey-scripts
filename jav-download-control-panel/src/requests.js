@@ -1,5 +1,7 @@
 // Search result from tokyotosho
-const {Request, Header} = window.JMUL;
+const {Request, Header} = window.JMUL || {Request: {}, Header: {}};
+const {Task} = require('./task');
+
 class TokyoToSho {
     constructor(_options = {}) {
         if (!TokyoToSho.instance) {
@@ -25,26 +27,46 @@ class TokyoToSho {
     search(target) {
         const request = new Request(this.options);
         request.setMethod('GET');
-        request.setUrl(this.host + `/search.php?terms=${target}`,``);
+        request.setUrl(this.host + `/search.php?terms=${target}`, ``);
         return request.send();
     }
 }
+
 TokyoToSho.instance = undefined;
 
-class Panel {
-    constructor() {
-        if (!Panel.instance) {
+class TaskPanel {
+    constructor(_options = {}) {
+        if (!TaskPanel.instance) {
             this.options = _options;
             this.initHeaders();
-            this.host = 'https://www.tokyotosho.info';
-            Panel.instance = this;
+            this.host = 'http://localhost:5000/downloader/api/v0.1.0/task';
+            TaskPanel.instance = this;
         }
-        return Panel.instance;
+        return TaskPanel.instance;
+    }
+
+    initHeaders() {
+        this.options.headers = new Header({'Content-Type': 'application/json'});
+    }
+
+    start(task) {
+        const request = new Request();
+        request.setMethod('GET');
+        request.setUrl(this.host);
+        request.setData(task.json());
+        return request.send();
+    }
+
+    list(tasks) {
+        const nameStr = Task.joinName(tasks);
+        const request = new Request();
+        request.setMethod('POST');
+        request.setUrl(`${this.host}?names=${nameStr}`);
+        return request.send();
     }
 }
-Panel.instance = undefined;
 
-module.exports = {
-    TokyoToSho, Panel
-};
+TaskPanel.instance = undefined;
 
+
+module.exports = {TokyoToSho, TaskPanel};
