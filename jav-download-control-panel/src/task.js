@@ -1,4 +1,4 @@
-const {JMElement} = window.JMUL || {JMElement: {}};
+const {Element} = window.JMUL || {JMElement: {}};
 
 class Task {
     constructor(name = '') {
@@ -10,15 +10,15 @@ class Task {
     }
 
     setPanelParent(el) {
-        this.panelParent = new JMElement(el);
+        this.panelParent = new Element(el);
     }
 
     setProgressBarParent(el) {
-        this.progressBarParent = new JMElement(el);
+        this.progressBarParent = new Element(el);
     }
 
     setMagnetLink(magnet) {
-        this.link = magnet;
+        this.magnet = magnet;
     }
 
     chooseBestMagnet(magnets) {
@@ -41,6 +41,13 @@ class Task {
         this.status = serverTask.status;
     }
 
+    json() {
+        return {
+            name: this.name,
+            magnet: this.link
+        }
+    }
+
     static joinName(tasks) {
         return tasks.reduce((res, t) => res += t.name + ';', '');
     }
@@ -50,6 +57,7 @@ class Task {
         task.setName(elem.children[0].children[0].children[0].children[1].textContent);
         task.setPanelParent(elem);
         task.setProgressBarParent(elem.children[0].children[0].children[0].children[1]);
+        return task;
     }
 
     static fromListElem(elem) {

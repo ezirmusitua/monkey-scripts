@@ -9,10 +9,10 @@ class UnknownClickAction {
         return (event) => {
             event.preventDefault();
             new TokyoToSho().search(this.task.name).then((response) => {
-                const magnets = (new TokyoToShoMatcher(response)).matchAll();
+                const magnets = (new Utils.TokyoToShoParser(response)).matchAll();
                 if (magnets && magnets.length) {
                     this.task.chooseBestMagnet(magnets);
-                    new TaskPanel().start({name: this.task.name, uri: this.task.link});
+                    new TaskPanel().start(this.task);
                 } else {
                     alert('无可用资源');
                 }
@@ -97,7 +97,7 @@ class ClickActionFactory {
     constructor() {
     }
 
-    static create(type, task) {
+    static create(type) {
         if (!ClickActionFactory.caches[type]) {
             switch (type) {
                 case 'active':
@@ -120,9 +120,10 @@ class ClickActionFactory {
                     break;
                 case 'unknown':
                 default:
-                    ClickActionFactory.caches[type] = new UnknownClickAction();
+                    ClickActionFactory.caches[type] = UnknownClickAction;
             }
         }
+        console.log(ClickActionFactory.caches[type]);
         return ClickActionFactory.caches[type];
     }
 }

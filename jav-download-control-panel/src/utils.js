@@ -7,19 +7,17 @@ const PageType = {
 };
 
 class Utils {
-    static pageType() {
-        const currentHref = window.location.href;
-        if (/http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(currentHref)) {
+    static pageType(href) {
+        if (/http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(href)) {
             return PageType.SINGLE_VIEW;
         }
-        if (/http:\/\/www\.javlibrary\.com\/cn\/vl_.*/.test(currentHref)) {
+        if (/http:\/\/www\.javlibrary\.com\/cn\/vl_.*/.test(href)) {
             return PageType.VIDEO_LIST;
         }
         return PageType.HOMEPAGE;
     }
 
-    static getTaskElements(_type) {
-        const type = _type || Utils.pageType();
+    static getTaskElements(type) {
         switch (type) {
             case PageType.SINGLE_VIEW:
                 return [document.getElementById('video_id')];
@@ -31,8 +29,8 @@ class Utils {
         }
     }
 
-    static generateTasks(_type) {
-        const type = _type || Utils.pageType();
+    static generateTasks(href) {
+        const type = Utils.pageType(href);
         const elements = Utils.getTaskElements(type);
         return elements.reduce((res, e) => {
             switch (type) {

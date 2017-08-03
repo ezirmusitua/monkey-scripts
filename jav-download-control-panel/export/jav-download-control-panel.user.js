@@ -15,13 +15,13 @@
 // ==/UserScript==
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-const JMElement = window.JMUL.Element || {};
+const {Element} = window.JMUL || {Element: {}};
 const {ClickActionFactory} = require('./elements.logic');
 
 class PanelButton {
     constructor(type, label) {
         this.type = type;
-        this.btn = new JMElement('button');
+        this.btn = new Element('button');
         this.btn.setInnerText(label);
         this.initStyle();
         this.bindClick();
@@ -38,7 +38,7 @@ class PanelButton {
     }
 
     bindClick(task) {
-        const gfn = new ClickActionFactory.create(this.type)(task).cb;
+        const gfn = new (ClickActionFactory.create(this.type))(task).cb;
         this.btn.listen('click', (e) => gfn(e, task));
     }
 
@@ -94,7 +94,7 @@ const TaskStatusBtnCandidates = {
 
 class Panel {
     constructor(task) {
-        this.element = new JMElement('section');
+        this.element = new Element('section');
         this.initStyles();
         this.initButton(task);
     }
@@ -115,8 +115,10 @@ class Panel {
     }
 
     appendTo(parent) {
-        parent.style.display = 'flex';
-        parent.style.margin = '4px 15%';
+        parent.setCss({
+            display: 'flex',
+            margin: '4px 15%'
+        });
         parent.appendChild(this.element);
     }
 }
@@ -124,8 +126,8 @@ class Panel {
 class ProgressBar {
     constructor(task) {
         const percentage = (task.completedLength / task.totalLength) * 100;
-        this.element = new JMElement('div');
-        this.already = new JMElement('div');
+        this.element = new Element('div');
+        this.already = new Element('div');
         this.initStyles(percentage);
         this.element.appendChild(this.already);
     }
@@ -164,10 +166,10 @@ class UnknownClickAction {
         return (event) => {
             event.preventDefault();
             new TokyoToSho().search(this.task.name).then((response) => {
-                const magnets = (new TokyoToShoMatcher(response)).matchAll();
+                const magnets = (new Utils.TokyoToShoParser(response)).matchAll();
                 if (magnets && magnets.length) {
                     this.task.chooseBestMagnet(magnets);
-                    new TaskPanel().start({name: this.task.name, uri: this.task.link});
+                    new TaskPanel().start(this.task);
                 } else {
                     alert('无可用资源');
                 }
@@ -252,7 +254,7 @@ class ClickActionFactory {
     constructor() {
     }
 
-    static create(type, task) {
+    static create(type) {
         if (!ClickActionFactory.caches[type]) {
             switch (type) {
                 case 'active':
@@ -275,9 +277,10 @@ class ClickActionFactory {
                     break;
                 case 'unknown':
                 default:
-                    ClickActionFactory.caches[type] = new UnknownClickAction();
+                    ClickActionFactory.caches[type] = UnknownClickAction;
             }
         }
+        console.log(ClickActionFactory.caches[type]);
         return ClickActionFactory.caches[type];
     }
 }
@@ -292,10 +295,13 @@ const {Panel, ProgressBar} = require('./elements');
 const {Task} = require('./task');
 
 (function () {
-    const tasks = Utils.generateTasks();
+    // const href = window.location.href;
+    const href = 'http://www.javlibrary.com/cn/?v=123;';
+    const tasks = Utils.generateTasks(href);
     init();
     function init() {
-        new TaskPanel().list(Task.joinName(tasks)).then(function (res) {
+        const taskRequest = new TaskPanel();
+        taskRequest.list(Task.joinName(tasks)).then(function (res) {
             const serverTaskNameMap = JSON.parse(res);
             tasks.forEach((task) => {
                 task.setServerStatus(serverTaskNameMap[task.name]);
@@ -369,11 +375,10 @@ class TaskPanel {
         return request.send();
     }
 
-    list(tasks) {
-        const nameStr = Task.joinName(tasks);
-        const request = new Request();
-        request.setMethod('POST');
-        request.setUrl(`${this.host}?names=${nameStr}`);
+    list(taskStr) {
+        const request = new Request(this.options);
+        request.setMethod('GET');
+        request.setUrl(`${this.host}?names=${taskStr}`);
         return request.send();
     }
 }
@@ -381,10 +386,10 @@ class TaskPanel {
 TaskPanel.instance = undefined;
 
 
-module.exports = {TokyoToSho, TaskPanel};
+module.exports = { TokyoToSho, TaskPanel};
 
 },{"./task":5}],5:[function(require,module,exports){
-const {JMElement} = window.JMUL || {JMElement: {}};
+const {Element} = window.JMUL || {JMElement: {}};
 
 class Task {
     constructor(name = '') {
@@ -396,15 +401,15 @@ class Task {
     }
 
     setPanelParent(el) {
-        this.panelParent = new JMElement(el);
+        this.panelParent = new Element(el);
     }
 
     setProgressBarParent(el) {
-        this.progressBarParent = new JMElement(el);
+        this.progressBarParent = new Element(el);
     }
 
     setMagnetLink(magnet) {
-        this.link = magnet;
+        this.magnet = magnet;
     }
 
     chooseBestMagnet(magnets) {
@@ -427,6 +432,13 @@ class Task {
         this.status = serverTask.status;
     }
 
+    json() {
+        return {
+            name: this.name,
+            magnet: this.link
+        }
+    }
+
     static joinName(tasks) {
         return tasks.reduce((res, t) => res += t.name + ';', '');
     }
@@ -436,6 +448,7 @@ class Task {
         task.setName(elem.children[0].children[0].children[0].children[1].textContent);
         task.setPanelParent(elem);
         task.setProgressBarParent(elem.children[0].children[0].children[0].children[1]);
+        return task;
     }
 
     static fromListElem(elem) {
@@ -466,19 +479,17 @@ const PageType = {
 };
 
 class Utils {
-    static pageType() {
-        const currentHref = window.location.href;
-        if (/http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(currentHref)) {
+    static pageType(href) {
+        if (/http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(href)) {
             return PageType.SINGLE_VIEW;
         }
-        if (/http:\/\/www\.javlibrary\.com\/cn\/vl_.*/.test(currentHref)) {
+        if (/http:\/\/www\.javlibrary\.com\/cn\/vl_.*/.test(href)) {
             return PageType.VIDEO_LIST;
         }
         return PageType.HOMEPAGE;
     }
 
-    static getTaskElements(_type) {
-        const type = _type || Utils.pageType();
+    static getTaskElements(type) {
         switch (type) {
             case PageType.SINGLE_VIEW:
                 return [document.getElementById('video_id')];
@@ -490,8 +501,8 @@ class Utils {
         }
     }
 
-    static generateTasks(_type) {
-        const type = _type || Utils.pageType();
+    static generateTasks(href) {
+        const type = Utils.pageType(href);
         const elements = Utils.getTaskElements(type);
         return elements.reduce((res, e) => {
             switch (type) {

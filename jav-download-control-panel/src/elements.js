@@ -1,10 +1,10 @@
-const JMElement = window.JMUL.Element || {};
+const {Element} = window.JMUL || {Element: {}};
 const {ClickActionFactory} = require('./elements.logic');
 
 class PanelButton {
     constructor(type, label) {
         this.type = type;
-        this.btn = new JMElement('button');
+        this.btn = new Element('button');
         this.btn.setInnerText(label);
         this.initStyle();
         this.bindClick();
@@ -21,7 +21,7 @@ class PanelButton {
     }
 
     bindClick(task) {
-        const gfn = new ClickActionFactory.create(this.type)(task).cb;
+        const gfn = new (ClickActionFactory.create(this.type))(task).cb;
         this.btn.listen('click', (e) => gfn(e, task));
     }
 
@@ -77,7 +77,7 @@ const TaskStatusBtnCandidates = {
 
 class Panel {
     constructor(task) {
-        this.element = new JMElement('section');
+        this.element = new Element('section');
         this.initStyles();
         this.initButton(task);
     }
@@ -98,8 +98,10 @@ class Panel {
     }
 
     appendTo(parent) {
-        parent.style.display = 'flex';
-        parent.style.margin = '4px 15%';
+        parent.setCss({
+            display: 'flex',
+            margin: '4px 15%'
+        });
         parent.appendChild(this.element);
     }
 }
@@ -107,8 +109,8 @@ class Panel {
 class ProgressBar {
     constructor(task) {
         const percentage = (task.completedLength / task.totalLength) * 100;
-        this.element = new JMElement('div');
-        this.already = new JMElement('div');
+        this.element = new Element('div');
+        this.already = new Element('div');
         this.initStyles(percentage);
         this.element.appendChild(this.already);
     }

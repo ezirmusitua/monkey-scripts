@@ -57,11 +57,10 @@ class TaskPanel {
         return request.send();
     }
 
-    list(tasks) {
-        const nameStr = Task.joinName(tasks);
-        const request = new Request();
-        request.setMethod('POST');
-        request.setUrl(`${this.host}?names=${nameStr}`);
+    list(taskStr) {
+        const request = new Request(this.options);
+        request.setMethod('GET');
+        request.setUrl(`${this.host}?names=${taskStr}`);
         return request.send();
     }
 }
@@ -69,4 +68,4 @@ class TaskPanel {
 TaskPanel.instance = undefined;
 
 
-module.exports = {TokyoToSho, TaskPanel};
+module.exports = { TokyoToSho, TaskPanel};

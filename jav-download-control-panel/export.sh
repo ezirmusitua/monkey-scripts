@@ -20,4 +20,4 @@ sed -i.old '1s;^;\// ==UserScript==\
 // ==/UserScript==\n\n;' ./dist/bundle.js
 echo " = = = = = prepend bundle with greasyfork head done = = = = = "
 rm ./dist/bundle.js.old
-cp ./dist/bundle.js ./export/highlight-my-interest.user.js
+cp ./dist/bundle.js ./export/jav-download-control-panel.user.js
