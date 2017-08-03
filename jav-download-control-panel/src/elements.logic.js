@@ -10,7 +10,8 @@ class UnknownClickAction {
         return (event) => {
             event.preventDefault();
             new TokyoToSho().search(this.task.name).then((response) => {
-                const magnets = (new Utils.TokyoToShoParser(response)).matchAll();
+                // FIXME: Fix JMRequest then change here
+                const magnets = (new Utils.TokyoToShoParser(response.responseText)).matchAll();
                 if (magnets && magnets.length) {
                     this.task.chooseBestMagnet(magnets);
                     new TaskPanel().start(this.task);
