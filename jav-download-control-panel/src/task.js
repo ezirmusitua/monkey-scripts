@@ -44,7 +44,7 @@ class Task {
     json() {
         return {
             name: this.name,
-            magnet: this.link
+            magnet: this.magnet.link
         }
     }
 
