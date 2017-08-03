@@ -7,7 +7,6 @@ class PanelButton {
         this.btn = new Element('button');
         this.btn.setInnerText(label);
         this.initStyle();
-        this.bindClick();
     }
 
     initStyle() {

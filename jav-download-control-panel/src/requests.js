@@ -67,5 +67,11 @@ class TaskPanel {
 
 TaskPanel.instance = undefined;
 
+if (window.DEBUG_MODE) {
+    TokyoToSho.prototype.search = function () {
+        return Promise.resolve(require('../test/mock-data').tokyoResponse);
+    }
+}
+
 
 module.exports = { TokyoToSho, TaskPanel};

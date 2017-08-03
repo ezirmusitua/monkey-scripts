@@ -1,4 +1,5 @@
 const {TokyoToSho, TaskPanel} = require('./requests');
+const {Utils} = require('./utils');
 
 class UnknownClickAction {
     constructor(task) {
@@ -94,8 +95,7 @@ class CompletedClickAction {
 }
 
 class ClickActionFactory {
-    constructor() {
-    }
+    constructor() {}
 
     static create(type) {
         if (!ClickActionFactory.caches[type]) {
@@ -123,7 +123,6 @@ class ClickActionFactory {
                     ClickActionFactory.caches[type] = UnknownClickAction;
             }
         }
-        console.log(ClickActionFactory.caches[type]);
         return ClickActionFactory.caches[type];
     }
 }

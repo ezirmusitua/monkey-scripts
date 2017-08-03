@@ -14,7 +14,6 @@ class BoardContainer {
     }
 
     appendChild(children) {
-        console.log(children);
         children.forEach((c) => {
             try {
                 this.element.appendChild(c.element)
