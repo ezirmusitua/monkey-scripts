@@ -12,7 +12,7 @@ sed -i.old '1s;^;\// ==UserScript==\
 // @author              jferroal\
 // @license             GPL-3.0\
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/jav-download-control-panel.user.js\
-// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209192\
+// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567\
 // @include             http://www.javlibrary.com/*\
 // @grant               GM_xmlhttpRequest\
 // @run-at              document-end\

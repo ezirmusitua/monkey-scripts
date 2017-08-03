@@ -8,7 +8,7 @@
 // @author              jferroal
 // @license             GPL-3.0
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/annotation-board.user.js
-// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=208363
+// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
 // @include             http://*
 // @include             https://*
 // @grant               GM_xmlhttpRequest
@@ -86,7 +86,6 @@ class BoardContainer {
     }
 
     appendChild(children) {
-        console.log(children);
         children.forEach((c) => {
             try {
                 this.element.appendChild(c.element)
