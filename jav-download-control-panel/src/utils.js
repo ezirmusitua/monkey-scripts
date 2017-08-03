@@ -1,5 +1,14 @@
 const {Task} = require('./task');
+function convertHTMLElementsToArray(elements) {
+    const result = [];
+    if (elements && !elements.length) {
+        for (let i = 0; i < elements.length; i += 1) {
+            result.push(elements.item(i));
+        }
+    }
+    return result;
 
+}
 const PageType = {
     SINGLE_VIEW: 100,
     VIDEO_LIST: 200,
@@ -22,10 +31,10 @@ class Utils {
             case PageType.SINGLE_VIEW:
                 return [document.getElementById('video_id')];
             case PageType.VIDEO_LIST:
-                return document.getElementsByClassName('video') || [];
+                return convertHTMLElementsToArray(document.getElementsByClassName('video'));
             case PageType.HOMEPAGE:
             default:
-                return document.getElementsByClassName('post-headline') || [];
+                return convertHTMLElementsToArray(document.getElementsByClassName('post-headline'));
         }
     }
 
