@@ -17,10 +17,10 @@ const PageType = {
 
 class Utils {
     static pageType(href) {
-        if (/http:\/\/www\.javlibrary\.com\/cn\/\?v=.*/.test(href)) {
+        if (/http:\/\/www\.javlibrary\.com\/.*\/\?v=.*/.test(href)) {
             return PageType.SINGLE_VIEW;
         }
-        if (/http:\/\/www\.javlibrary\.com\/cn\/vl_.*/.test(href)) {
+        if (/http:\/\/www\.javlibrary\.com\/.*\/vl_.*/.test(href)) {
             return PageType.VIDEO_LIST;
         }
         return PageType.HOMEPAGE;
