@@ -1,4 +1,5 @@
 let JMUL = window.JMUL || {};
+
 const Map = (list, fn) => {
     let result = [];
     if (list && list.length) {
@@ -29,11 +30,15 @@ class TextElement {
 
     highlight() {
         if (this.shouldHighlight) {
-            this.element.setCss({
-                backgroundColor: '#FFDA5E',
-                color: 'black',
-            });
+            this.element.setCss(TextElement.highlightStyle);
         }
+    }
+
+    static init(setting) {
+        TextElement.highlightStyle = {
+            background: setting.highlightBgColor,
+            color: setting.highlightTxtColor,
+        };
     }
 
     static setKeywords(keywords) {

@@ -1,4 +1,4 @@
-const InterestedKeywords = [
+const DefaultKeywords = [
     "书籍",
     "效率",
     "google.*?",
@@ -26,16 +26,16 @@ const InterestedKeywords = [
 ];
 
 class KeywordService {
-    static list(forceLoad = false) {
-        return new Promise((resolve) => {
-            if (forceLoad) {
-                // load from server;
-            }
-            resolve(KeywordService.InterestedKeywords);
-        });
+    static init(setting) {
+        KeywordService.Setting = setting;
+    }
 
+    static list() {
+        const hasLoadKeywords = KeywordService.Setting.keywords && KeywordService.Setting.keywords.length;
+        return Promise.resolve(hasLoadKeywords && KeywordService.Setting.keywords || KeywordService.DefaultKeywords);
     }
 }
-KeywordService.InterestedKeywords = InterestedKeywords;
+
+KeywordService.DefaultKeywords = DefaultKeywords;
 
 module.exports = KeywordService;

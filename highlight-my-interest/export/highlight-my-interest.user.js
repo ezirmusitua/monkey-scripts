@@ -16,72 +16,8 @@
 // ==/UserScript==
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-const KeywordService = require('./keyword.service');
-const TextElement = require('./text-element');
-const MaxDetectTime = 10000;
-const DetectIntervalTime = 2000;
-
-(function () {
-    let highlightedCount = 0;
-    runHighlight();
-    window.addEventListener('scroll', () => {
-        runHighlight();
-    });
-    function runHighlight() {
-        const elements = TextElement.findAll();
-        if (elements.length === highlightedCount) return;
-        KeywordService.list().then((keywords) => {
-            TextElement.setKeywords(keywords);
-            elements.map((e) => e.detect().highlight());
-            highlightedCount = elements.length;
-        });
-    }
-})();
-
-},{"./keyword.service":2,"./text-element":3}],2:[function(require,module,exports){
-const InterestedKeywords = [
-    "书籍",
-    "效率",
-    "google.*?",
-    "nexus.*?",
-    "爬虫",
-    "python.*?",
-    "angular.*?",
-    "node",
-    "javascript",
-    "ukulele",
-    /gtd.*?/gi,
-    "工作流",
-    "日程",
-    "英雄联盟",
-    "vps",
-    "服务器",
-    "书单",
-    "免费",
-    "限免",
-    "数据分析",
-    "自由职业",
-    "lol",
-    "react",
-    "mobx",
-];
-
-class KeywordService {
-    static list(forceLoad = false) {
-        return new Promise((resolve) => {
-            if (forceLoad) {
-                // load from server;
-            }
-            resolve(KeywordService.InterestedKeywords);
-        });
-
-    }
-}
-KeywordService.InterestedKeywords = InterestedKeywords;
-
-module.exports = KeywordService;
-},{}],3:[function(require,module,exports){
 let JMUL = window.JMUL || {};
+
 const Map = (list, fn) => {
     let result = [];
     if (list && list.length) {
@@ -112,11 +48,15 @@ class TextElement {
 
     highlight() {
         if (this.shouldHighlight) {
-            this.element.setCss({
-                backgroundColor: '#FFDA5E',
-                color: 'black',
-            });
+            this.element.setCss(TextElement.highlightStyle);
         }
+    }
+
+    static init(setting) {
+        TextElement.highlightStyle = {
+            background: setting.highlightBgColor,
+            color: setting.highlightTxtColor,
+        };
     }
 
     static setKeywords(keywords) {
@@ -133,4 +73,125 @@ class TextElement {
 
 TextElement.targetTagNames = ['h1', 'h2', 'h3', 'h4', 'h5', 'p', 'a', 'pre', 'blockquote', 'summary'];
 module.exports = TextElement;
-},{}]},{},[1]);
+},{}],2:[function(require,module,exports){
+const KeywordService = require('./keyword.service');
+const SettingService = require('./setting.service');
+console.log('Setting Service', SettingService, SettingService.init);
+const TextElement = require('./element');
+
+const Config = {};
+
+(function () {
+    let highlightedCount = 0;
+    loadSetting().then((setting) => {
+        KeywordService.init(setting);
+        TextElement.init(setting);
+        highlight()
+    });
+    window.addEventListener('scroll', highlight);
+
+    function loadSetting() {
+        SettingService.init(Config);
+        return SettingService.load();
+    }
+
+    function highlight() {
+        const elements = TextElement.findAll();
+        if (elements.length === highlightedCount) return;
+        KeywordService.list().then((keywords) => {
+            TextElement.setKeywords(keywords);
+            elements.map((e) => e.detect().highlight());
+            highlightedCount = elements.length;
+        });
+    }
+})();
+
+},{"./element":1,"./keyword.service":3,"./setting.service":5}],3:[function(require,module,exports){
+const DefaultKeywords = [
+    "书籍",
+    "效率",
+    "google.*?",
+    "nexus.*?",
+    "爬虫",
+    "python.*?",
+    "angular.*?",
+    "node",
+    "javascript",
+    "ukulele",
+    /gtd.*?/gi,
+    "工作流",
+    "日程",
+    "英雄联盟",
+    "vps",
+    "服务器",
+    "书单",
+    "免费",
+    "限免",
+    "数据分析",
+    "自由职业",
+    "lol",
+    "react",
+    "mobx",
+];
+
+class KeywordService {
+    static init(setting) {
+        KeywordService.Setting = setting;
+    }
+
+    static list() {
+        const hasLoadKeywords = KeywordService.Setting.keywords && KeywordService.Setting.keywords.length;
+        return Promise.resolve(hasLoadKeywords && KeywordService.Setting.keywords || KeywordService.DefaultKeywords);
+    }
+}
+
+KeywordService.DefaultKeywords = DefaultKeywords;
+
+module.exports = KeywordService;
+},{}],4:[function(require,module,exports){
+class Setting {
+    constructor(jsonBody) {
+        Object.assign(this, jsonBody);
+    }
+}
+
+module.exports = {Setting};
+},{}],5:[function(require,module,exports){
+const Setting = require('./setting');
+const {Request} = window.JMUL || {JMUL: {}};
+
+const DefaultResponseHandler = (_response) => {
+    let response = _response;
+    if (typeof _response === 'object' && _response.responseText) {
+        response = _response.responseText;
+    }
+    return new Setting(JSON.parse(response));
+};
+
+class SettingService {
+    static init(config) {
+        SettingService.loadUrl = config.loadUrl;
+        SettingService.method = config.method || 'GET';
+        SettingService.contentType = config.contentType || 'application/json';
+        SettingService.data = config.data || {};
+        SettingService.resHandler = config.resHandler || DefaultResponseHandler;
+    }
+    static load() {
+        if (!SettingService.loadUrl) return Promise.resolve(SettingService.DefaultSetting);
+        const request = new Request({headers: {'content-type': SettingService.contentType}});
+        request.setUrl(SettingService.loadUrl);
+        request.setMethod(SettingService.method);
+        request.setData(SettingService.data);
+        return request.send().then((response) => {
+            return SettingService.resHandler(response.responseText);
+        });
+    }
+}
+
+SettingService.DefaultSetting = {
+    highlightBgColor: '#FFDA5E',
+    highlightTxtColor: 'black',
+};
+
+module.exports = SettingService;
+},{"./setting":4}]},{},[2]);
