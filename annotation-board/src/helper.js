@@ -8,5 +8,5 @@ const formatDate = (dateObj) => {
 };
 
 module.exports = {
-    formatDate: formatDate,
+  formatDate: formatDate,
 };

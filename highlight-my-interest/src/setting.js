@@ -1,7 +1,7 @@
 class Setting {
-    constructor(jsonBody) {
-        Object.assign(this, jsonBody);
-    }
+  constructor (jsonBody) {
+    Object.assign(this, jsonBody);
+  }
 }
 
-module.exports = {Setting};
+module.exports = { Setting };
