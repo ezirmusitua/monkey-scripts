@@ -157,7 +157,7 @@ class Setting {
 
 module.exports = {Setting};
 },{}],5:[function(require,module,exports){
-const Setting = require('./setting');
+const Setting = require('./setting').Setting;
 const {Request} = window.JMUL || {JMUL: {}};
 
 const DefaultResponseHandler = (_response) => {

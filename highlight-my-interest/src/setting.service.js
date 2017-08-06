@@ -1,4 +1,4 @@
-const Setting = require('./setting');
+const Setting = require('./setting').Setting;
 const {Request} = window.JMUL || {JMUL: {}};
 
 const DefaultResponseHandler = (_response) => {

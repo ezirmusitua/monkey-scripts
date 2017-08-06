@@ -6,7 +6,7 @@
 // @version             0.2.1
 // @author              jferroal
 // @license             GPL-3.0
-// @grant               none
+// @grant               GM_xmlhttpRequest
 // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
 // @include             https://sspai.com/*
 // @include             https://toutiao.io/*
@@ -157,7 +157,7 @@ class Setting {
 
 module.exports = {Setting};
 },{}],5:[function(require,module,exports){
-const Setting = require('./setting');
+const Setting = require('./setting').Setting;
 const {Request} = window.JMUL || {JMUL: {}};
 
 const DefaultResponseHandler = (_response) => {
