@@ -1,14 +1,15 @@
 const KeywordService = require('./keyword.service');
 const SettingService = require('./setting.service');
-console.log('Setting Service', SettingService, SettingService.init);
 const TextElement = require('./element');
 
 const Config = {};
 
 (function () {
     let highlightedCount = 0;
+    // const href = window.location.href;
+    const href = 'https://sspai.com';
     loadSetting().then((setting) => {
-        KeywordService.init(setting);
+        KeywordService.init(setting, href);
         TextElement.init(setting);
         highlight()
     });

@@ -3,7 +3,7 @@
 // @name:zh-CN          高亮关键词
 // @description         highlight keywords in my favorites
 // @description:zh-CN   高亮特定网页中感兴趣的关键词
-// @version             0.2.1
+// @version             0.2.2
 // @author              jferroal
 // @license             GPL-3.0
 // @grant               none
@@ -76,15 +76,16 @@ module.exports = TextElement;
 },{}],2:[function(require,module,exports){
 const KeywordService = require('./keyword.service');
 const SettingService = require('./setting.service');
-console.log('Setting Service', SettingService, SettingService.init);
 const TextElement = require('./element');
 
 const Config = {};
 
 (function () {
     let highlightedCount = 0;
+    // const href = window.location.href;
+    const href = 'https://sspai.com';
     loadSetting().then((setting) => {
-        KeywordService.init(setting);
+        KeywordService.init(setting, href);
         TextElement.init(setting);
         highlight()
     });
@@ -107,6 +108,35 @@ const Config = {};
 })();
 
 },{"./element":1,"./keyword.service":3,"./setting.service":5}],3:[function(require,module,exports){
+class KeywordService {
+    static init(setting, href) {
+        KeywordService.Setting = setting;
+        const sites = Object.keys(KeywordService.Setting.keywords);
+        if (sites && sites.length) {
+            KeywordService.keywords = sites.reduce((res, site) => {
+                const sitePattern = new RegExp(site, 'gi');
+                return res.concat(sitePattern.test(href) && KeywordService.Setting.keywords[site] || [])}, []);
+        }
+    }
+
+    static list() {
+        return Promise.resolve(KeywordService.keywords);
+    }
+}
+
+module.exports = KeywordService;
+},{}],4:[function(require,module,exports){
+class Setting {
+    constructor(jsonBody) {
+        Object.assign(this, jsonBody);
+    }
+}
+
+module.exports = {Setting};
+},{}],5:[function(require,module,exports){
+const Setting = require('./setting').Setting;
+const {Request} = window.JMUL || {JMUL: {}};
+
 const DefaultKeywords = [
     "书籍",
     "效率",
@@ -133,32 +163,6 @@ const DefaultKeywords = [
     "react",
     "mobx",
 ];
-
-class KeywordService {
-    static init(setting) {
-        KeywordService.Setting = setting;
-    }
-
-    static list() {
-        const hasLoadKeywords = KeywordService.Setting.keywords && KeywordService.Setting.keywords.length;
-        return Promise.resolve(hasLoadKeywords && KeywordService.Setting.keywords || KeywordService.DefaultKeywords);
-    }
-}
-
-KeywordService.DefaultKeywords = DefaultKeywords;
-
-module.exports = KeywordService;
-},{}],4:[function(require,module,exports){
-class Setting {
-    constructor(jsonBody) {
-        Object.assign(this, jsonBody);
-    }
-}
-
-module.exports = {Setting};
-},{}],5:[function(require,module,exports){
-const Setting = require('./setting').Setting;
-const {Request} = window.JMUL || {JMUL: {}};
 
 const DefaultResponseHandler = (_response) => {
     let response = _response;
@@ -191,6 +195,11 @@ class SettingService {
 SettingService.DefaultSetting = {
     highlightBgColor: '#FFDA5E',
     highlightTxtColor: 'black',
+    keywords: {
+        "https://sspai.com/*": DefaultKeywords,
+        "https://toutiao.io/*": DefaultKeywords,
+        "http://www.inoreader.com/*": DefaultKeywords
+    }
 };
 
 module.exports = SettingService;
