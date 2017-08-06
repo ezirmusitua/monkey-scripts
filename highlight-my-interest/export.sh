@@ -13,9 +13,8 @@ sed -i.old '1s;^;\// ==UserScript==\
 // @license             GPL-3.0\
 // @grant               none\
 // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567\
-// @include             https://sspai.com/*\
-// @include             https://toutiao.io/*\
-// @include             http://www.inoreader.com/*\
+// @include             http://*\
+// @include             https://*\
 // @run-at              document-end\
 // @namespace           https://greasyfork.org/users/34556-jferroal\
 // ==/UserScript==\n\n;' ./dist/bundle.js
