@@ -6,7 +6,7 @@
 // @version             0.2.2
 // @author              jferroal
 // @license             GPL-3.0
-// @grant               none
+// @grant               GM_xmlhttpRequest
 // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
 // @include             http://*
 // @include             https://*
