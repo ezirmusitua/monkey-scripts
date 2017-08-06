@@ -6,8 +6,7 @@ const Config = {};
 
 (function () {
   let highlightedCount = 0;
-  // const href = window.location.href;
-  const href = 'https://sspai.com';
+  const href = window.location.href;
   loadSetting().then((setting) => {
     KeywordService.init(setting, href);
     TextElement.init(setting);
