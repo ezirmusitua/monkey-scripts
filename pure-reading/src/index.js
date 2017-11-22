@@ -1,7 +1,7 @@
 const { Sites } = require('./sites');
 
 (function () {
-    Sites.reduce((res, site) => {
+    Sites.forEach(site => {
         site.start(window.location.href);
     });
 })();

@@ -53,7 +53,7 @@ module.exports = { ToRemove, ToUpdate };
 const { Sites } = require('./sites');
 
 (function () {
-    Sites.reduce((res, site) => {
+    Sites.forEach(site => {
         site.start(window.location.href);
     });
 })();
@@ -129,15 +129,16 @@ const Jobbole = {
 };
 
 const Cartoonmad = {
-    url: /http:\/\/www\.cartoonmad\.com\/comic\/.*\.html/,
+    url: /http:\/\/www\.cartoonmad\.com\/comic\/\d{5,}\.html/,
+    // 这里是 traps, 因为 dom 操作是同步的, 当一个 element 被删除之后, 如果使用 nth-child 这样的顺序相关的 selector 的时候, 一定要注意
     toRemove: [
-        'table > tbody > tr:nth-child(1)',
-        'table > tbody > tr:nth-child(2)',
-        'table > tbody > tr:nth-child(3)',
-        'table > tbody > tr:nth-child(4)',
-        'table > tbody > tr:nth-child(7)',
-        'table > tbody > tr:nth-child(5) > td:nth-child(2)',
-        'table > tbody > tr:nth-child(5) > td:nth-child(3)',
+        'body > table > tbody > tr:nth-child(1)',
+        'body > table > tbody > tr:nth-child(1)',
+        'body > table > tbody > tr:nth-child(1)',
+        'body > table > tbody > tr:nth-child(1)',
+        'body > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(1) > td:nth-child(2)',
+        'body > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(1) > td:nth-child(2)',
+        'body > table > tbody > tr:nth-child(3)',
     ],
     toUpdate: [],
 };
