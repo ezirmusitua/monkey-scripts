@@ -187,7 +187,6 @@
     get cb () {
       return (event) => {
         event.preventDefault();
-        console.log('resume');
       }
     }
   }

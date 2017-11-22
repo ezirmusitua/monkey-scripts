@@ -30,7 +30,6 @@ class ActiveClickAction {
   get cb () {
     return (event) => {
       event.preventDefault();
-      console.log('resume');
     }
   }
 }
@@ -42,7 +41,6 @@ class WaitingClickAction {
   get cb () {
     return (event) => {
       event.preventDefault();
-      console.log('resume');
     }
   }
 }
@@ -54,7 +52,6 @@ class PausedClickAction {
   get cb () {
     return (event) => {
       event.preventDefault();
-      console.log('resume');
     }
   }
 }
@@ -66,7 +63,6 @@ class RemovedClickAction {
   get cb () {
     return (event) => {
       event.preventDefault();
-      console.log('resume');
     }
   }
 }
@@ -78,7 +74,6 @@ class ErrorClickAction {
   get cb () {
     return (event) => {
       event.preventDefault();
-      console.log('resume');
     }
   }
 }
@@ -90,7 +85,6 @@ class CompletedClickAction {
   get cb () {
     return (event) => {
       event.preventDefault();
-      console.log('resume');
     }
   }
 }

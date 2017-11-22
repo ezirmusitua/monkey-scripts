@@ -8,7 +8,7 @@ sed -i.old '1s;^;\// ==UserScript==\
 // @name:zh-CN          Jav 下载控制台\
 // @description         Use javlibrary as your video download control panel\
 // @description:zh-CN   把 javlibrary 作为下载控制台\
-// @version             0.2.0\
+// @version             0.2.1\
 // @author              jferroal\
 // @license             GPL-3.0\
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/jav-download-control-panel.user.js\
