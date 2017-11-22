@@ -11,7 +11,7 @@ class ToRemove {
             if (elem) {
                 elem.remove();
             }
-        })
+        });
     }
 }
 
