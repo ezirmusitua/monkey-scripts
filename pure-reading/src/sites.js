@@ -26,7 +26,7 @@ class Site {
 }
 
 const Jobbole = {
-    url: /http:\/\/.*\.jobbole\.com\/\d+\//,
+    url: /http:\/\/.*\.jobbole\.com\/.*/,
     toRemove: [
         '#top-nav',
         'header',

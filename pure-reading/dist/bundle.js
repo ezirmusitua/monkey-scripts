@@ -3,7 +3,7 @@
 // @name:zh-CN          阅读模式
 // @description         Update site style for reading 
 // @description:zh-CN   修改特定网站界面的样式以便阅读
-// @version             0.1.3
+// @version             0.1.4
 // @author              jferroal
 // @license             GPL-3.0
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/pure-reading.user.js
@@ -86,7 +86,7 @@ class Site {
 }
 
 const Jobbole = {
-    url: /http:\/\/.*\.jobbole\.com\/\d+\//,
+    url: /http:\/\/.*\.jobbole\.com\/.*/,
     toRemove: [
         '#top-nav',
         'header',
