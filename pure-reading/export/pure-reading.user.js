@@ -3,7 +3,7 @@
 // @name:zh-CN          阅读模式
 // @description         Update site style for reading 
 // @description:zh-CN   修改特定网站界面的样式以便阅读
-// @version             0.1.2
+// @version             0.1.3
 // @author              jferroal
 // @license             GPL-3.0
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/pure-reading.user.js
@@ -143,7 +143,40 @@ const Cartoonmad = {
     toUpdate: [],
 };
 
+const CSDNBlog = {
+    url: /http:\/\/blog\.csdn\.net\/.*?\/article\/details\/\d+\//,
+    toRemove: [
+        '.switchDOM',
+        '.csdn-toolbar',
+        '.toolbar-s',
+        '#toolbar-tpl-scriptId',
+        '.left_fixed',
+        '.right_fixed',
+        '.pop_win',
+        '.pop_mask',
+        '.pop_CA_cover',
+        '.pop_CA_cover',
+        '.pop_CA',
+        '.report_dialog',
+        'aside',
+        '.article_copyright',
+        '.article_collect',
+        '.comment_box',
+        '.comment_li_outbox',
+        '.more_comment',
+        '.recommend_tit',
+        '.recommend_list',
+        'ul.right_bar',
+    ],
+    toUpdate: [ {
+        selector: '.container',
+        styles: {
+            width: '960px',
+        },
+    } ],
+};
+
 module.exports = {
-    Sites: [ new Site(Jobbole), new Site(Cartoonmad) ],
+    Sites: [ new Site(Jobbole), new Site(Cartoonmad), new Site(CSDNBlog) ],
 };
 },{"./Operator":1}]},{},[2]);
