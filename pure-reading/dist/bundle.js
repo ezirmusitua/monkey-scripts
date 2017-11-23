@@ -3,7 +3,7 @@
 // @name:zh-CN          阅读模式
 // @description         Update site style for reading 
 // @description:zh-CN   修改特定网站界面的样式以便阅读
-// @version             0.1.4
+// @version             0.1.5
 // @author              jferroal
 // @license             GPL-3.0
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/pure-reading.user.js
@@ -28,7 +28,7 @@ class ToRemove {
             if (elem) {
                 elem.remove();
             }
-        })
+        });
     }
 }
 
@@ -144,7 +144,7 @@ const Cartoonmad = {
 };
 
 const CSDNBlog = {
-    url: /http:\/\/blog\.csdn\.net\/.*?\/article\/details\/\d+\//,
+    url: /http:\/\/blog\.csdn\.net\/.*?\/article\/details\/.*/,
     toRemove: [
         '.switchDOM',
         '.csdn-toolbar',

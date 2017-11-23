@@ -84,7 +84,7 @@ const Cartoonmad = {
 };
 
 const CSDNBlog = {
-    url: /http:\/\/blog\.csdn\.net\/.*?\/article\/details\/\d+\//,
+    url: /http:\/\/blog\.csdn\.net\/.*?\/article\/details\/.*/,
     toRemove: [
         '.switchDOM',
         '.csdn-toolbar',
