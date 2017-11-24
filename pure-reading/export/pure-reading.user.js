@@ -3,7 +3,7 @@
 // @name:zh-CN          阅读模式
 // @description         Update site style for reading 
 // @description:zh-CN   修改特定网站界面的样式以便阅读
-// @version             0.1.7
+// @version             0.1.8
 // @author              jferroal
 // @license             GPL-3.0
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/pure-reading.user.js
@@ -179,7 +179,6 @@ const CSDNBlog = {
 const BaiduSearch = {
     url: /https?:\/\/www\.baidu\.com\/s.*/,
     toRemove: [
-        '.search_tool_conter > .nums',
         '#content_left > div:not(.result)',
         '#content_right',
         '#rs',
@@ -189,6 +188,7 @@ const BaiduSearch = {
         styles: {
             width: '100%',
             display: 'flex',
+            'flex-direction': 'column',
             'align-items': 'center',
         },
     }, {
@@ -200,6 +200,12 @@ const BaiduSearch = {
         selector: '#page',
         styles: {
             padding: 0,
+        },
+    }, {
+        selector: '.search_tool_conter .nums,',
+        styles: {
+            width: '100%',
+            margin: 0,
         },
     } ],
 };
