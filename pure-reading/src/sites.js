@@ -117,7 +117,7 @@ const CSDNBlog = {
 };
 
 const BaiduSearch = {
-    url: 'https://www.baidu.com/s.*',
+    url: /https?:\/\/www\.baidu\.com\/s.*/,
     toRemove: [
         '.search_tool_conter > .nums',
         '#content_left > div:not(.result)',

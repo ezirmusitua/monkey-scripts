@@ -8,7 +8,7 @@ sed -i.old '1s;^;\// ==UserScript==\
 // @name:zh-CN          阅读模式\
 // @description         Update site style for reading \
 // @description:zh-CN   修改特定网站界面的样式以便阅读\
-// @version             0.1.6\
+// @version             0.1.7\
 // @author              jferroal\
 // @license             GPL-3.0\
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/pure-reading.user.js\
