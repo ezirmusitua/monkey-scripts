@@ -3,7 +3,7 @@
 // @name:zh-CN          阅读模式
 // @description         Update site style for reading 
 // @description:zh-CN   修改特定网站界面的样式以便阅读
-// @version             0.1.5
+// @version             0.1.6
 // @author              jferroal
 // @license             GPL-3.0
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/pure-reading.user.js
@@ -24,9 +24,9 @@ class ToRemove {
 
     startRemove () {
         this.toRemoveSelectors.forEach(s => {
-            const elem = document.querySelector(s);
-            if (elem) {
-                elem.remove();
+            const elems = document.querySelectorAll(s);
+            if (elems && elems.length) {
+                elems.forEach(e => e.remove());
             }
         });
     }
@@ -176,7 +176,35 @@ const CSDNBlog = {
     } ],
 };
 
+const BaiduSearch = {
+    url: 'https://www.baidu.com/s.*',
+    toRemove: [
+        '.search_tool_conter > .nums',
+        '#content_left > div:not(.result)',
+        '#content_right',
+        '#rs',
+    ],
+    toUpdate: [ {
+        selector: '#container',
+        styles: {
+            width: '100%',
+            display: 'flex',
+            'align-items': 'center',
+        },
+    }, {
+        selector: '#content_left',
+        styles: {
+            padding: 0,
+        },
+    }, {
+        selector: '#page',
+        styles: {
+            padding: 0,
+        },
+    } ],
+};
+
 module.exports = {
-    Sites: [ new Site(Jobbole), new Site(Cartoonmad), new Site(CSDNBlog) ],
+    Sites: [ new Site(Jobbole), new Site(Cartoonmad), new Site(CSDNBlog), new Site(BaiduSearch) ],
 };
 },{"./Operator":1}]},{},[2]);

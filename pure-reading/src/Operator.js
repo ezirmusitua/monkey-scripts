@@ -7,9 +7,9 @@ class ToRemove {
 
     startRemove () {
         this.toRemoveSelectors.forEach(s => {
-            const elem = document.querySelector(s);
-            if (elem) {
-                elem.remove();
+            const elems = document.querySelectorAll(s);
+            if (elems && elems.length) {
+                elems.forEach(e => e.remove());
             }
         });
     }

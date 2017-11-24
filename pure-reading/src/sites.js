@@ -116,6 +116,34 @@ const CSDNBlog = {
     } ],
 };
 
+const BaiduSearch = {
+    url: 'https://www.baidu.com/s.*',
+    toRemove: [
+        '.search_tool_conter > .nums',
+        '#content_left > div:not(.result)',
+        '#content_right',
+        '#rs',
+    ],
+    toUpdate: [ {
+        selector: '#container',
+        styles: {
+            width: '100%',
+            display: 'flex',
+            'align-items': 'center',
+        },
+    }, {
+        selector: '#content_left',
+        styles: {
+            padding: 0,
+        },
+    }, {
+        selector: '#page',
+        styles: {
+            padding: 0,
+        },
+    } ],
+};
+
 module.exports = {
-    Sites: [ new Site(Jobbole), new Site(Cartoonmad), new Site(CSDNBlog) ],
+    Sites: [ new Site(Jobbole), new Site(Cartoonmad), new Site(CSDNBlog), new Site(BaiduSearch) ],
 };
