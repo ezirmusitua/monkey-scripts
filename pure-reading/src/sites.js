@@ -119,7 +119,6 @@ const CSDNBlog = {
 const BaiduSearch = {
     url: /https?:\/\/www\.baidu\.com\/s.*/,
     toRemove: [
-        '.search_tool_conter > .nums',
         '#content_left > div:not(.result)',
         '#content_right',
         '#rs',
@@ -129,6 +128,7 @@ const BaiduSearch = {
         styles: {
             width: '100%',
             display: 'flex',
+            'flex-direction': 'column',
             'align-items': 'center',
         },
     }, {
@@ -140,6 +140,12 @@ const BaiduSearch = {
         selector: '#page',
         styles: {
             padding: 0,
+        },
+    }, {
+        selector: '.search_tool_conter .nums,',
+        styles: {
+            width: '100%',
+            margin: 0,
         },
     } ],
 };
