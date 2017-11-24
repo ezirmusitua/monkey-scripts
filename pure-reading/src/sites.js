@@ -142,7 +142,7 @@ const BaiduSearch = {
             padding: 0,
         },
     }, {
-        selector: '.search_tool_conter .nums,',
+        selector: '.head_nums_cont_inner .nums,',
         styles: {
             width: '100%',
             margin: 0,
