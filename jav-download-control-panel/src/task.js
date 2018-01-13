@@ -4,23 +4,23 @@ class Task {
   constructor (name = '') {
     this.name = name;
   }
-
+  
   setName (name) {
     this.name = name;
   }
-
+  
   setPanelParent (el) {
     this.panelParent = new Element(el);
   }
-
+  
   setProgressBarParent (el) {
     this.progressBarParent = new Element(el);
   }
-
+  
   setMagnetLink (magnet) {
     this.magnet = magnet;
   }
-
+  
   chooseBestMagnet (magnets) {
     this.setMagnetLink(magnets.reduce((best, magnet) => {
       const current = {
@@ -34,45 +34,47 @@ class Task {
       return current;
     }, { link: '', score: 0, size: 0 }));
   }
-
+  
   setServerStatus (serverTask) {
     this.completedLength = serverTask.completedLength;
     this.totalLength = serverTask.totalLength;
     this.status = serverTask.status;
   }
-
-  json () {
-    return {
-      name: this.name,
-      magnet: this.magnet.link
-    }
+  
+  generateRequestStr () {
+    return JSON.stringify({
+      jsonrpc: '2.0',
+      id: this.name,
+      method: 'aria2.addUri',
+      params: [ [ this.magnet.link ] ],
+    })
   }
-
+  
   static joinName (tasks) {
     return tasks.reduce((res, t) => res += t.name + ';', '');
   }
-
+  
   static fromSingleElem (elem) {
     const task = new Task();
-    task.setName(elem.children[0].children[0].children[0].children[1].textContent);
+    task.setName(elem.children[ 0 ].children[ 0 ].children[ 0 ].children[ 1 ].textContent);
     task.setPanelParent(elem);
-    task.setProgressBarParent(elem.children[0].children[0].children[0].children[1]);
+    task.setProgressBarParent(elem.children[ 0 ].children[ 0 ].children[ 0 ].children[ 1 ]);
     return task;
   }
-
+  
   static fromListElem (elem) {
     const task = new Task();
-    task.setName(elem.children[0].children[0].textContent);
+    task.setName(elem.children[ 0 ].children[ 0 ].textContent);
     task.setPanelParent(elem);
-    task.setProgressBarParent(elem.children[0].children[0]);
+    task.setProgressBarParent(elem.children[ 0 ].children[ 0 ]);
     return task;
   }
-
+  
   static fromHomeElem (elem) {
     const task = new Task();
-    task.setName(elem.children[0].textContent);
+    task.setName(elem.children[ 0 ].textContent);
     task.setPanelParent(elem);
-    task.setProgressBarParent(elem.children[0]);
+    task.setProgressBarParent(elem.children[ 0 ]);
     return task;
   }
 }

@@ -11,7 +11,7 @@ class TokyoToSho {
     }
     return TokyoToSho.instance;
   }
-
+  
   initHeaders () {
     this.options.headers = new Header({
       ':authority': 'www.tokyotosho.info',
@@ -22,7 +22,7 @@ class TokyoToSho {
       'cache-control': 'no-cache',
     });
   }
-
+  
   search (target) {
     const request = new Request(this.options);
     request.setMethod('GET');
@@ -38,28 +38,21 @@ class TaskPanel {
     if (!TaskPanel.instance) {
       this.options = _options;
       this.initHeaders();
-      this.host = 'http://localhost:5000/downloader/api/v0.1.0/task';
+      this.host = 'http://localhost:6800/jsonrpc';
       TaskPanel.instance = this;
     }
     return TaskPanel.instance;
   }
-
+  
   initHeaders () {
     this.options.headers = new Header({ 'Content-Type': 'application/json' });
   }
-
+  
   start (task) {
     const request = new Request(this.options);
     request.setMethod('POST');
     request.setUrl(this.host);
-    request.setData(task.json());
-    return request.send();
-  }
-
-  list (taskStr) {
-    const request = new Request(this.options);
-    request.setMethod('GET');
-    request.setUrl(`${this.host}?names=${taskStr}`);
+    request.setData(task.generateRequestStr());
     return request.send();
   }
 }

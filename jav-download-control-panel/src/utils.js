@@ -1,13 +1,15 @@
 const { Task } = require('./task');
+
 function convertHTMLElementsToArray (elements) {
   const result = [];
-  if (elements && !elements.length) {
+  if (elements && elements.length) {
     for (let i = 0; i < elements.length; i += 1) {
       result.push(elements.item(i));
     }
   }
   return result;
 }
+
 const PageType = {
   SINGLE_VIEW: 100,
   VIDEO_LIST: 200,
@@ -24,11 +26,11 @@ class Utils {
     }
     return PageType.HOMEPAGE;
   }
-
+  
   static getTaskElements (type) {
     switch (type) {
       case PageType.SINGLE_VIEW:
-        return [document.getElementById('video_id')];
+        return [ document.getElementById('video_id') ];
       case PageType.VIDEO_LIST:
         return convertHTMLElementsToArray(document.getElementsByClassName('video'));
       case PageType.HOMEPAGE:
@@ -36,7 +38,7 @@ class Utils {
         return convertHTMLElementsToArray(document.getElementsByClassName('post-headline'));
     }
   }
-
+  
   static generateTasks (href) {
     const type = Utils.pageType(href);
     const elements = Utils.getTaskElements(type);
@@ -68,12 +70,12 @@ Utils.TokyoToShoParser = class TokyoToShoParser {
     this.completedCountPattern = /C: <span style="color: .*?">(\d+)<\/span>/gi;
     this.sizePattern = /\| Size: (.*?) \|/gi;
   }
-
+  
   matchAll () {
     const result = [];
-    let [mlMatch, scMatch, lcMatch, ccMatch, szMatch] = [undefined, undefined, undefined, undefined, undefined];
+    let [ mlMatch, scMatch, lcMatch, ccMatch, szMatch ] = [ undefined, undefined, undefined, undefined, undefined ];
     do {
-      [mlMatch, scMatch, lcMatch, ccMatch, szMatch] = [
+      [ mlMatch, scMatch, lcMatch, ccMatch, szMatch ] = [
         this.magnetLinkPattern.exec(this.pageContent),
         this.seederCountPattern.exec(this.pageContent),
         this.leederCountPattern.exec(this.pageContent),
@@ -82,11 +84,11 @@ Utils.TokyoToShoParser = class TokyoToShoParser {
       ];
       if (mlMatch) {
         result.push({
-          link: mlMatch[1].trim(),
-          sCount: scMatch[1],
-          lCount: lcMatch[1],
-          cCount: ccMatch[1],
-          size: (szMatch && szMatch[1]) || '0MB',
+          link: mlMatch[ 1 ].trim(),
+          sCount: scMatch[ 1 ],
+          lCount: lcMatch[ 1 ],
+          cCount: ccMatch[ 1 ],
+          size: (szMatch && szMatch[ 1 ]) || '0MB',
         });
       }
     } while (mlMatch);

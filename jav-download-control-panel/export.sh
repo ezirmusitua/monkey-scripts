@@ -4,11 +4,11 @@ echo "../node_modules/.bin/browserify ./src/index.js -o ./dist/bundle.js"
 echo " = = = = = Browserify done = = = = = = "
 echo "prepend greasyfork head "
 sed -i.old '1s;^;\// ==UserScript==\
-// @name                jav download control panel\
-// @name:zh-CN          Jav 下载控制台\
-// @description         Use javlibrary as your video download control panel\
-// @description:zh-CN   把 javlibrary 作为下载控制台\
-// @version             0.2.1\
+// @name                Download In JavLibrary\
+// @name:zh-CN          JavLibrary 下载\
+// @description         Download directly in javlibrary video detail page\
+// @description:zh-CN   直接在 javlibrary 影片详情页进行下载\
+// @version             0.3.0\
 // @author              jferroal\
 // @license             GPL-3.0\
 // @updateURL           https://github.com/ezirmusitua/my-tamper-monkey-scripts/raw/master/jav-download-control-panel.user.js\
