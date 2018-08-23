@@ -3,7 +3,7 @@
 // @name:zh-CN          高亮关键词
 // @description         highlight keywords in my favorites
 // @description:zh-CN   高亮特定网页中感兴趣的关键词
-// @version             0.3.1
+// @version             0.3.2
 // @author              jferroal
 // @license             GPL-3.0
 // @grant               GM_xmlhttpRequest
@@ -113,7 +113,7 @@ class KeywordService {
     sites.forEach((site) => {
       const sitePattern = new RegExp(site, 'gi');
       if (sitePattern.test(href)) {
-        KeywordService.keywords.push(...sites[ site ]);
+        KeywordService.keywords.push(...KeywordService.Setting.sites[ site ]);
       }
     });
   }

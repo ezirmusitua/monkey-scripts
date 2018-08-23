@@ -7,7 +7,7 @@ class KeywordService {
     sites.forEach((site) => {
       const sitePattern = new RegExp(site, 'gi');
       if (sitePattern.test(href)) {
-        KeywordService.keywords.push(...sites[ site ]);
+        KeywordService.keywords.push(...KeywordService.Setting.sites[ site ]);
       }
     });
   }
