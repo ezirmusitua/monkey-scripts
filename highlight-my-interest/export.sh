@@ -8,7 +8,7 @@ sed -i.old '1s;^;\// ==UserScript==\
 // @name:zh-CN          高亮关键词\
 // @description         highlight keywords in my favorites\
 // @description:zh-CN   高亮特定网页中感兴趣的关键词\
-// @version             0.3.0\
+// @version             0.3.1\
 // @author              jferroal\
 // @license             GPL-3.0\
 // @grant               GM_xmlhttpRequest\

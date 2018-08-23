@@ -3,7 +3,7 @@
 // @name:zh-CN          高亮关键词
 // @description         highlight keywords in my favorites
 // @description:zh-CN   高亮特定网页中感兴趣的关键词
-// @version             0.3.0
+// @version             0.3.1
 // @author              jferroal
 // @license             GPL-3.0
 // @grant               GM_xmlhttpRequest
@@ -140,18 +140,18 @@ const {Request} = window.JMUL || {JMUL: {}}
 
 const DefaultKeywords = [
   {
-    'str': 'react',
-    'title': 'react',
-    'type': 'programming'
+    "str": "react",
+    "title": "react",
+    "type": "programming"
   },
   {
-    'str': '爬虫',
-    'title': '爬虫',
-    'type': 'programming'
+    "str": "爬虫",
+    "title": "爬虫",
+    "type": "programming"
   },
   {
-    'str': '数据',
-    'title': '数据'
+    "str": "数据",
+    "title": "数据"
   },
   {
     'str': 'android',
@@ -239,7 +239,7 @@ SettingService.DefaultSetting = {
       text: 'black'
     }
   },
-  keywords: {
+  sites: {
     'https://sspai.com/*': DefaultKeywords,
     'https://toutiao.io/*': DefaultKeywords,
     'http://www.inoreader.com/*': DefaultKeywords,
