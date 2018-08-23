@@ -24,7 +24,7 @@ const Config = {};
     if (elements.length === highlightedCount) return;
     KeywordService.list().then((keywords) => {
       TextElement.setKeywords(keywords);
-      elements.map((e) => e.detect().highlight());
+      elements.map((e) => e.highlight());
       highlightedCount = elements.length;
     });
   }
