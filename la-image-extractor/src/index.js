@@ -25,7 +25,7 @@
   const btn = document.createElement('div')
   btn.innerText = 'Copy Sources'
   btn.style.textAlign = 'center'
-  btn.style.width = '80px'
+  btn.style.width = '120px'
   btn.style.lineHeight = '40px'
   btn.style.backgroundColor = 'skyblue'
   btn.style.color = 'white'
