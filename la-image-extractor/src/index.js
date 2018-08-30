@@ -1,26 +1,4 @@
 (function () {
-  const href = window.location.href
-  const isHitomi = /hitomi/gi.test(href)
-  // prepare str2Paste
-  let [imgSrcSelector, titleSelector] = ['.tag-list-img', 'h1']
-  if (isHitomi) {
-    imgSrcSelector = '.img-url'
-    titleSelector = 'title'
-  }
-  let srcs = Array.from(document.querySelectorAll(imgSrcSelector))
-  let title = document.querySelector(titleSelector).innerText
-  if (isHitomi) {
-    title = title.split(' | ')[0]
-    const magic = parseInt(window.location.href.split('/').slice(-1)[0][1]) % 2
-    if (Number.isNaN(magic)) {
-      srcs = []
-    } else {
-      srcs = srcs.map(s => s.innerText.replace('//g.hitomi.la', `https://${String.fromCharCode(magic + 97)}a.hitomi.la`))
-    }
-  } else {
-    srcs = srcs.map(s => s.src.replace('//tn', '//i').split('.').slice(0, 4).join('.'))
-  }
-  const str2paste = `${title}\n${srcs.join('\n')}${'\n = ='.repeat(20)}`
   // create button to click
   const btn = document.createElement('div')
   btn.innerText = 'Copy Sources'
@@ -38,6 +16,28 @@
   document.body.appendChild(btn)
   // bind copy event
   btn.addEventListener('click', () => {
+    const href = window.location.href
+    const isHitomi = /hitomi/gi.test(href)
+    // prepare str2Paste
+    let [imgSrcSelector, titleSelector] = ['.tag-list-img', 'h1']
+    if (isHitomi) {
+      imgSrcSelector = '.img-url'
+      titleSelector = 'title'
+    }
+    let srcs = Array.from(document.querySelectorAll(imgSrcSelector))
+    let title = document.querySelector(titleSelector).innerText
+    if (isHitomi) {
+      title = title.split(' | ')[0]
+      const magic = parseInt(window.location.href.split('/').slice(-1)[0][1]) % 2
+      if (Number.isNaN(magic)) {
+        srcs = []
+      } else {
+        srcs = srcs.map(s => s.innerText.replace('//g.hitomi.la', `https://${String.fromCharCode(magic + 97)}a.hitomi.la`))
+      }
+    } else {
+      srcs = srcs.map(s => s.src.replace('//tn', '//i').split('.').slice(0, 4).join('.'))
+    }
+    const str2paste = `${title}\n${srcs.join('\n')}\n${'= ='.repeat(20)}`
     const el = document.createElement('textarea')
     el.value = str2paste
     document.body.appendChild(el)
