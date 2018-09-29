@@ -8,7 +8,7 @@ sed -i.old '1s;^;\// ==UserScript==\
 // @name:zh-CN          la 图片地址复制\
 // @description         copy image source in hitomi.la & notomi.la to clipboard\
 // @description:zh-CN   复制 hitoma.la & notomi.la 图片链接到剪贴板\
-// @version             0.1.3\
+// @version             0.1.4\
 // @author              jferroal\
 // @license             GPL-3.0\
 // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567\

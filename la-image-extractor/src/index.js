@@ -1,4 +1,6 @@
 (function () {
+  const ADAPOST = false
+  const NUMBER_OF_FRONTENDS = 2
   // create button to click
   const btn = document.createElement('div')
   btn.innerText = 'Copy Sources'
@@ -28,12 +30,15 @@
     let title = document.querySelector(titleSelector).innerText
     if (isHitomi) {
       title = title.split(' | ')[0]
-      const magic = parseInt(window.location.href.split('/').slice(-1)[0][1]) % 2
-      if (Number.isNaN(magic)) {
-        srcs = []
-      } else {
-        srcs = srcs.map(s => s.innerText.replace('//g.hitomi.la', `https://${String.fromCharCode(magic + 97)}a.hitomi.la`))
+      const mat = /\/\d*(\d)\.html/.exec(window.location.href)
+      let lv = mat && parseInt(mat[1], 10)
+      if (!lv || Number.isNaN(lv)) {
+        btn.removeEventListener('click', () => null)
+        btn.style.display = 'none'
+        return
       }
+      const magic = ADAPOST ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NUMBER_OF_FRONTENDS) + 97)
+      srcs = srcs.map(s => s.innerText.replace('//g.hitomi.la', `https://${magic}a.hitomi.la`))
     } else {
       srcs = srcs.map(s => s.src.replace('//tn', '//i').split('.').slice(0, 4).join('.'))
     }

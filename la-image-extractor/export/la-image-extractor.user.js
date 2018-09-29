@@ -3,7 +3,7 @@
 // @name:zh-CN          la 图片地址复制
 // @description         copy image source in hitomi.la  notomi.la to clipboard
 // @description:zh-CN   复制 hitoma.la  notomi.la 图片链接到剪贴板
-// @version             0.1.3
+// @version             0.1.4
 // @author              jferroal
 // @license             GPL-3.0
 // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
@@ -15,6 +15,8 @@
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function () {
+  const ADAPOST = false
+  const NUMBER_OF_FRONTENDS = 2
   // create button to click
   const btn = document.createElement('div')
   btn.innerText = 'Copy Sources'
@@ -44,12 +46,15 @@
     let title = document.querySelector(titleSelector).innerText
     if (isHitomi) {
       title = title.split(' | ')[0]
-      const magic = parseInt(window.location.href.split('/').slice(-1)[0][1]) % 2
-      if (Number.isNaN(magic)) {
-        srcs = []
-      } else {
-        srcs = srcs.map(s => s.innerText.replace('//g.hitomi.la', `https://${String.fromCharCode(magic + 97)}a.hitomi.la`))
+      const mat = /\/\d*(\d)\.html/.exec(window.location.href)
+      let lv = mat && parseInt(mat[1], 10)
+      if (!lv || Number.isNaN(lv)) {
+        btn.removeEventListener('click', () => null)
+        btn.style.display = 'none'
+        return
       }
+      const magic = ADAPOST ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NUMBER_OF_FRONTENDS) + 97)
+      srcs = srcs.map(s => s.innerText.replace('//g.hitomi.la', `https://${magic}a.hitomi.la`))
     } else {
       srcs = srcs.map(s => s.src.replace('//tn', '//i').split('.').slice(0, 4).join('.'))
     }
