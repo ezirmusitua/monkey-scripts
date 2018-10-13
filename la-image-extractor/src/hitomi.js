@@ -1,12 +1,12 @@
+const {innerText} = require('./utils');
 const ImgSrcSelector = '.img-url';
 const TitleSelector = 'title';
 const ADAPOST = false;
 const NUMBER_OF_FRONTENDS = 2;
 
-module.exports = function extractImages() {
+module.exports = function extractHitomiImages() {
   let images = Array.from(document.querySelectorAll(ImgSrcSelector));
-  const titleElem = document.querySelector(TitleSelector) || {innerText: 'Unknown | Unkonow'};
-  let title = encodeURIComponent(titleElem.innerText.split(' | ')[0]);
+  let title = encodeURIComponent(innerText(document.querySelector(TitleSelector), '- | -').split(' | ')[0]);
   const mat = /\/\d*(\d)\.html/.exec(window.location.href);
   let lv = mat && parseInt(mat[1], 10);
   if (!lv || Number.isNaN(lv)) {

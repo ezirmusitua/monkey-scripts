@@ -14,6 +14,7 @@ sed -i.old '1s;^;\// ==UserScript==\
 // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567\
 // @include             https://hitomi.la/reader/*\
 // @include             https://nozomi.la/tag/*\
+// @grant               GM_xmlhttpRequest\
 // @run-at              document-idle\
 // @namespace           https://greasyfork.org/users/34556-jferroal\
 // ==/UserScript==\n\n;' ./dist/bundle.js

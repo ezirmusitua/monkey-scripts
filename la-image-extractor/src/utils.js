@@ -12,5 +12,11 @@ module.exports = {
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
+  },
+  href(d = '') {
+    return (window && window.location && window.location.href) || d;
+  },
+  innerText(elem, d = '') {
+    return (elem && elem.innerText) || d;
   }
 };
