@@ -1,53 +1,20 @@
+const {isHitomi, copyToClipboard} = require('./utils');
+const Button = require('./Button');
+const extractHitomiImages = require('./hitomi');
+const extractNozomiImages = require('./nozomi');
+
 (function () {
-  const ADAPOST = false
-  const NUMBER_OF_FRONTENDS = 2
   // create button to click
-  const btn = document.createElement('div')
-  btn.innerText = 'Copy Sources'
-  btn.style.textAlign = 'center'
-  btn.style.width = '120px'
-  btn.style.lineHeight = '40px'
-  btn.style.backgroundColor = 'skyblue'
-  btn.style.color = 'white'
-  btn.style.cursor = 'pointer'
-  btn.style.borderRadius = '8px'
-  btn.style.boxShadow = '0px 0px 8px 4px rgba(0, 0, 0, .2)'
-  btn.style.position = 'fixed'
-  btn.style.right = '80px'
-  btn.style.bottom = '80px'
-  document.body.appendChild(btn)
-  // bind copy event
-  btn.addEventListener('click', () => {
-    const href = window.location.href
-    const isHitomi = /hitomi/gi.test(href)
+  const btn = new Button('Copy Sources');
+  btn.onClick(() => {
     // prepare str2Paste
-    let [imgSrcSelector, titleSelector] = ['.tag-list-img', 'h1']
-    if (isHitomi) {
-      imgSrcSelector = '.img-url'
-      titleSelector = 'title'
-    }
-    let srcs = Array.from(document.querySelectorAll(imgSrcSelector))
-    let title = document.querySelector(titleSelector).innerText
-    if (isHitomi) {
-      title = title.split(' | ')[0]
-      const mat = /\/\d*(\d)\.html/.exec(window.location.href)
-      let lv = mat && parseInt(mat[1], 10)
-      if (!lv || Number.isNaN(lv)) {
-        btn.removeEventListener('click', () => null)
-        btn.style.display = 'none'
-        return
-      }
-      const magic = ADAPOST ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NUMBER_OF_FRONTENDS) + 97)
-      srcs = srcs.map(s => s.innerText.replace('//g.hitomi.la', `https://${magic}a.hitomi.la`))
+    let str2paste = '';
+    if (isHitomi()) {
+      str2paste = extractHitomiImages();
     } else {
-      srcs = srcs.map(s => s.src.replace('//tn', '//i').split('.').slice(0, 4).join('.'))
+      str2paste = extractNozomiImages();
     }
-    const str2paste = `${title}\n${srcs.join('\n')}\n${'= ='.repeat(20)}`
-    const el = document.createElement('textarea')
-    el.value = str2paste
-    document.body.appendChild(el)
-    el.select()
-    document.execCommand('copy')
-    document.body.removeChild(el)
-  })
-})()
+    copyToClipboard(str2paste);
+  });
+  btn.appendTo(document.body);
+})();
