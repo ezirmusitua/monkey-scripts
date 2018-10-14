@@ -1,5 +1,11 @@
-const {innerText, href} = require('./utils');
-const [ImgSrcSelector, TitleSelector, ContentSelector, ThumbnailDivsSelector] = ['.tag-list-img', 'h1', '.content', '#thumbnail-divs'];
+const {innerText, createLoadingElement} = require('./utils');
+
+const [
+  ImgSrcSelector,
+  TitleSelector,
+  ContentSelector,
+  ThumbnailDivsSelector
+] = ['.tag-list-img', 'h1', '.content', '#thumbnail-divs'];
 
 function JSPack() {
   // Module-level (private) variables
@@ -370,18 +376,7 @@ function fetch_nozomi(totalImageCount) {
   var start_byte = 0;
   var end_byte = totalImageCount * 4 - 1;
   var xhr = new XMLHttpRequest();
-  const loadingElem = document.createElement('div');
-  loadingElem.style.position = 'fixed';
-  loadingElem.style.top = '0';
-  loadingElem.style.right = '0';
-  loadingElem.style.bottom = '0';
-  loadingElem.style.left = '0';
-  loadingElem.style.display = 'flex';
-  loadingElem.style.backgroundColor = 'rgba(0, 0, 0, 0.56)';
-  loadingElem.style.justifyContent = 'center';
-  loadingElem.style.alignItems = 'center';
-  loadingElem.style.fontSize = '72px';
-  loadingElem.innerText = 'LOADING';
+  const loadingElement = createLoadingElement();
   document.body.appendChild(loadingElem);
   xhr.open('GET', nozomi_address);
   xhr.responseType = 'arraybuffer';
@@ -398,9 +393,6 @@ function fetch_nozomi(totalImageCount) {
           total_items = parseInt(xhr.getResponseHeader('Content-Range').replace(/^[Bb]ytes \d+-\d+\//, '')) / 4;
           get_jsons();
           document.body.removeChild(loadingElem);
-          const loadedElem = document.createElement('div');
-          loadedElem.setAttribute('id', 'data-image-loaded');
-          document.body.appendChild(loadedElem);
         }
       }
     }
@@ -433,8 +425,8 @@ function get_json(postid) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.open('GET', url);
   xmlhttp.onreadystatechange = function () {
-    if (this.readyState == 4) {
-      if (this.status == 200) {
+    if (this.readyState === 4) {
+      if (this.status === 200) {
         results_array[postid] = JSON.parse(this.responseText);
       } else {
         results_array[postid] = '';
@@ -505,9 +497,8 @@ function results_to_page(datas) {
 }
 
 
-module.exports = function extractNozomiImages() {
-  const loaded = document.getElementById('data-image-loaded');
-  if (!loaded) {
+module.exports = {
+  fetchNozomiAll() {
     const totalPage = parseInt(innerText(document.querySelector('.page-container li:last-child'), 1), 10);
     const totalImageCount = totalPage * 64;
     // prettify page
@@ -526,7 +517,8 @@ module.exports = function extractNozomiImages() {
       thumbnailsContainer.removeChild(e);
     }
     fetch_nozomi(totalImageCount);
-  } else {
+  },
+  extractNozomiImages() {
     let images = Array.from(document.querySelectorAll(ImgSrcSelector));
     let title = document.querySelector(TitleSelector).innerText;
     images = images.map(s => s.src.replace('//tn', '//i').split('.').slice(0, 4).join('.'));

@@ -2,7 +2,7 @@ class Button {
   constructor(label, eventHandlers = []) {
     this.element = document.createElement('div');
     this.addCss(Button.DefaultCss);
-    this.element.innerText = 'Copy Sources';
+    this.element.innerText = label;
     this.listeners = {};
     this.listen(eventHandlers);
     this.parent = null;

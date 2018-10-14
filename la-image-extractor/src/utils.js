@@ -5,6 +5,9 @@ module.exports = {
   isNozomi() {
     return window && window.location && /nozomi.la\/tag/gi.test(window.location.href);
   },
+  isEhentai() {
+    return window && window.location && /e-hentai.org\/s/gi.test(window.location.href);
+  },
   copyToClipboard(content) {
     const el = document.createElement('textarea');
     el.value = content;
@@ -18,5 +21,31 @@ module.exports = {
   },
   innerText(elem, d = '') {
     return (elem && elem.innerText) || d;
+  },
+  matchAll(content, pat) {
+    let matches = [];
+    let match = pat.exec(content);
+    while (match) {
+      matches.push(match[1]);
+      match = pat.exec(content);
+    }
+    pat.lastIndex = -1;
+    return matches;
+  },
+  createLoadingElement() {
+    const loadingElem = document.createElement('div');
+    loadingElem.style.position = 'fixed';
+    loadingElem.style.top = '0';
+    loadingElem.style.right = '0';
+    loadingElem.style.bottom = '0';
+    loadingElem.style.left = '0';
+    loadingElem.style.display = 'flex';
+    loadingElem.style.backgroundColor = 'rgba(0, 0, 0, 0.56)';
+    loadingElem.style.justifyContent = 'center';
+    loadingElem.style.alignItems = 'center';
+    loadingElem.style.fontSize = '72px';
+    loadingElem.style.zIndex = '999';
+    loadingElem.innerText = 'LOADING';
+    return loadingElem;
   }
 };

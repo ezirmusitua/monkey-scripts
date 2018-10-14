@@ -1,14 +1,15 @@
 // ==UserScript==
 // @name                la-image-extractor
 // @name:zh-CN          la 图片地址复制
-// @description         copy image source in hitomi.la  notomi.la to clipboard
-// @description:zh-CN   复制 hitoma.la  notomi.la 图片链接到剪贴板
-// @version             0.1.4
+// @description         copy image source in hitomi.la  notomi.la  e-hentai.org to clipboard
+// @description:zh-CN   复制 hitoma.la  notomi.la  e-hentai 图片链接到剪贴板
+// @version             0.2.0
 // @author              jferroal
 // @license             GPL-3.0
 // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
 // @include             https://hitomi.la/reader/*
 // @include             https://nozomi.la/tag/*
+// @include             https://e-hentai.org/s/*
 // @grant               GM_xmlhttpRequest
 // @run-at              document-idle
 // @namespace           https://greasyfork.org/users/34556-jferroal
@@ -19,7 +20,7 @@ class Button {
   constructor(label, eventHandlers = []) {
     this.element = document.createElement('div');
     this.addCss(Button.DefaultCss);
-    this.element.innerText = 'Copy Sources';
+    this.element.innerText = label;
     this.listeners = {};
     this.listen(eventHandlers);
     this.parent = null;
@@ -80,50 +81,143 @@ Button.DefaultCss = {
 module.exports = Button;
 
 },{}],2:[function(require,module,exports){
+const {href, innerText, createLoadingElement} = require('./utils');
+
+const [
+  MainContainerSelector,
+  TopPaginationSelector,
+  ImageContainerSelector,
+  BottomPaginationSelector,
+  ImagesSelector,
+  TitleSelector
+] = ['#i1', '#i2', '#i3', '#i4', '#i3 img', 'title'];
+const NextPagePattern = /<div id="i3"><a onclick="return load_image\((\d+), '([\w\d]+)'\)"/gi;
+const ImageSourcePattern = /<img id="img" src="(.*)" style=".*?" onerror=".*?" \/>/gi;
+
+function constructImage(src) {
+  const img = document.createElement('img');
+  img.style.height = '1600px';
+  img.style.width = '1150px';
+  img.style.maxWidth = '1280px';
+  img.style.maxHeight = '1920px';
+  img.setAttribute('src', src);
+  return img;
+}
+
+module.exports = {
+  fetchEhentaiAll() {
+    const postId = href().split('/')[5].split('-')[0];
+    let prevPage = 1;
+
+    const loadingElement = createLoadingElement();
+
+    function getNextImage(page, hash) {
+      const url = `https://e-hentai.org/s/${hash}/${postId}-${page}`;
+      const xmlhttp = new XMLHttpRequest();
+      xmlhttp.open('GET', url);
+      xmlhttp.onreadystatechange = function () {
+        if (this.readyState !== 4) return;
+        if (this.status === 200) {
+          const [, imageSource] = ImageSourcePattern.exec(this.responseText);
+          const img = constructImage(imageSource);
+          document.querySelector(ImageContainerSelector).appendChild(img);
+          ImageSourcePattern.lastIndex = -1;
+          const [, p, h] = NextPagePattern.exec(this.responseText);
+          NextPagePattern.lastIndex = -1;
+          if (parseInt(p, 10) <= prevPage + 1) {
+            document.body.removeChild(loadingElement);
+            return;
+          }
+          getNextImage(p, h);
+        }
+        prevPage += 1;
+      };
+      xmlhttp.send();
+    }
+
+    document.querySelector(TopPaginationSelector).style.display = 'none';
+    document.querySelector(BottomPaginationSelector).style.display = 'none';
+    document.body.appendChild(loadingElement);
+    const [, page, hash] = NextPagePattern.exec(document.querySelector(MainContainerSelector).innerHTML);
+    getNextImage(page, hash);
+  },
+  extractEhentaiImages() {
+    const imgs = document.querySelectorAll(ImagesSelector);
+    const sources = Array.from(imgs).map(i => i.src);
+    const title = innerText(document.querySelector(TitleSelector));
+    return `${title}\n${sources.join('\n')}\n${'= ='.repeat(20)}`;
+  }
+};
+
+},{"./utils":6}],3:[function(require,module,exports){
 const {innerText} = require('./utils');
 const ImgSrcSelector = '.img-url';
 const TitleSelector = 'title';
 const ADAPOST = false;
 const NUMBER_OF_FRONTENDS = 2;
 
-module.exports = function extractHitomiImages() {
-  let images = Array.from(document.querySelectorAll(ImgSrcSelector));
-  let title = encodeURIComponent(innerText(document.querySelector(TitleSelector), '- | -').split(' | ')[0]);
-  const mat = /\/\d*(\d)\.html/.exec(window.location.href);
-  let lv = mat && parseInt(mat[1], 10);
-  if (!lv || Number.isNaN(lv)) {
-    lv = '1';
+module.exports = {
+  extractHitomiImages() {
+    let images = Array.from(document.querySelectorAll(ImgSrcSelector));
+    let title = encodeURIComponent(innerText(document.querySelector(TitleSelector), '- | -').split(' | ')[0]);
+    const mat = /\/\d*(\d)\.html/.exec(window.location.href);
+    let lv = mat && parseInt(mat[1], 10);
+    if (!lv || Number.isNaN(lv)) {
+      lv = '1';
+    }
+    const magic = ADAPOST ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NUMBER_OF_FRONTENDS) + 97);
+    images = images.map(s => s.innerText.replace('//g.hitomi.la', `https://${magic}a.hitomi.la`));
+    return `${title}\n${images.join('\n')}\n${'= ='.repeat(20)}`;
   }
-  const magic = ADAPOST ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NUMBER_OF_FRONTENDS) + 97);
-  images = images.map(s => s.innerText.replace('//g.hitomi.la', `https://${magic}a.hitomi.la`));
-  return `${title}\n${images.join('\n')}\n${'= ='.repeat(20)}`;
 };
 
-},{"./utils":5}],3:[function(require,module,exports){
-const {isHitomi, copyToClipboard} = require('./utils');
+},{"./utils":6}],4:[function(require,module,exports){
+const {isHitomi, isNozomi, isEhentai, copyToClipboard} = require('./utils');
 const Button = require('./Button');
-const extractHitomiImages = require('./hitomi');
-const extractNozomiImages = require('./nozomi');
+const {extractHitomiImages} = require('./hitomi');
+const {extractNozomiImages, fetchNozomiAll} = require('./nozomi');
+const {extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
 
 (function () {
   // create button to click
+  if (isNozomi() || isEhentai()) {
+    const btn = new Button('Fetch All');
+    btn.addCss({bottom: '160px'});
+    btn.appendTo(document.body);
+    btn.onClick(() => {
+      if (isNozomi()) {
+        fetchNozomiAll();
+      }
+      if (isEhentai()) {
+        fetchEhentaiAll();
+      }
+    });
+  }
   const btn = new Button('Copy Sources');
   btn.onClick(() => {
     // prepare str2Paste
     let str2paste = '';
     if (isHitomi()) {
       str2paste = extractHitomiImages();
-    } else {
+    } else if (isNozomi()) {
       str2paste = extractNozomiImages();
+    } else {
+      str2paste = extractEhentaiImages();
     }
     copyToClipboard(str2paste);
   });
   btn.appendTo(document.body);
 })();
 
-},{"./Button":1,"./hitomi":2,"./nozomi":4,"./utils":5}],4:[function(require,module,exports){
-const {innerText, href} = require('./utils');
-const [ImgSrcSelector, TitleSelector, ContentSelector, ThumbnailDivsSelector] = ['.tag-list-img', 'h1', '.content', '#thumbnail-divs'];
+},{"./Button":1,"./ehentai":2,"./hitomi":3,"./nozomi":5,"./utils":6}],5:[function(require,module,exports){
+const {innerText, createLoadingElement} = require('./utils');
+
+const [
+  ImgSrcSelector,
+  TitleSelector,
+  ContentSelector,
+  ThumbnailDivsSelector
+] = ['.tag-list-img', 'h1', '.content', '#thumbnail-divs'];
 
 function JSPack() {
   // Module-level (private) variables
@@ -494,18 +588,7 @@ function fetch_nozomi(totalImageCount) {
   var start_byte = 0;
   var end_byte = totalImageCount * 4 - 1;
   var xhr = new XMLHttpRequest();
-  const loadingElem = document.createElement('div');
-  loadingElem.style.position = 'fixed';
-  loadingElem.style.top = '0';
-  loadingElem.style.right = '0';
-  loadingElem.style.bottom = '0';
-  loadingElem.style.left = '0';
-  loadingElem.style.display = 'flex';
-  loadingElem.style.backgroundColor = 'rgba(0, 0, 0, 0.56)';
-  loadingElem.style.justifyContent = 'center';
-  loadingElem.style.alignItems = 'center';
-  loadingElem.style.fontSize = '72px';
-  loadingElem.innerText = 'LOADING';
+  const loadingElement = createLoadingElement();
   document.body.appendChild(loadingElem);
   xhr.open('GET', nozomi_address);
   xhr.responseType = 'arraybuffer';
@@ -522,9 +605,6 @@ function fetch_nozomi(totalImageCount) {
           total_items = parseInt(xhr.getResponseHeader('Content-Range').replace(/^[Bb]ytes \d+-\d+\//, '')) / 4;
           get_jsons();
           document.body.removeChild(loadingElem);
-          const loadedElem = document.createElement('div');
-          loadedElem.setAttribute('id', 'data-image-loaded');
-          document.body.appendChild(loadedElem);
         }
       }
     }
@@ -557,8 +637,8 @@ function get_json(postid) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.open('GET', url);
   xmlhttp.onreadystatechange = function () {
-    if (this.readyState == 4) {
-      if (this.status == 200) {
+    if (this.readyState === 4) {
+      if (this.status === 200) {
         results_array[postid] = JSON.parse(this.responseText);
       } else {
         results_array[postid] = '';
@@ -629,9 +709,8 @@ function results_to_page(datas) {
 }
 
 
-module.exports = function extractNozomiImages() {
-  const loaded = document.getElementById('data-image-loaded');
-  if (!loaded) {
+module.exports = {
+  fetchNozomiAll() {
     const totalPage = parseInt(innerText(document.querySelector('.page-container li:last-child'), 1), 10);
     const totalImageCount = totalPage * 64;
     // prettify page
@@ -650,7 +729,8 @@ module.exports = function extractNozomiImages() {
       thumbnailsContainer.removeChild(e);
     }
     fetch_nozomi(totalImageCount);
-  } else {
+  },
+  extractNozomiImages() {
     let images = Array.from(document.querySelectorAll(ImgSrcSelector));
     let title = document.querySelector(TitleSelector).innerText;
     images = images.map(s => s.src.replace('//tn', '//i').split('.').slice(0, 4).join('.'));
@@ -658,13 +738,16 @@ module.exports = function extractNozomiImages() {
   }
 };
 
-},{"./utils":5}],5:[function(require,module,exports){
+},{"./utils":6}],6:[function(require,module,exports){
 module.exports = {
   isHitomi() {
     return window && window.location && /hitomi/gi.test(window.location.href);
   },
   isNozomi() {
     return window && window.location && /nozomi.la\/tag/gi.test(window.location.href);
+  },
+  isEhentai() {
+    return window && window.location && /e-hentai.org\/s/gi.test(window.location.href);
   },
   copyToClipboard(content) {
     const el = document.createElement('textarea');
@@ -679,7 +762,33 @@ module.exports = {
   },
   innerText(elem, d = '') {
     return (elem && elem.innerText) || d;
+  },
+  matchAll(content, pat) {
+    let matches = [];
+    let match = pat.exec(content);
+    while (match) {
+      matches.push(match[1]);
+      match = pat.exec(content);
+    }
+    pat.lastIndex = -1;
+    return matches;
+  },
+  createLoadingElement() {
+    const loadingElem = document.createElement('div');
+    loadingElem.style.position = 'fixed';
+    loadingElem.style.top = '0';
+    loadingElem.style.right = '0';
+    loadingElem.style.bottom = '0';
+    loadingElem.style.left = '0';
+    loadingElem.style.display = 'flex';
+    loadingElem.style.backgroundColor = 'rgba(0, 0, 0, 0.56)';
+    loadingElem.style.justifyContent = 'center';
+    loadingElem.style.alignItems = 'center';
+    loadingElem.style.fontSize = '72px';
+    loadingElem.style.zIndex = '999';
+    loadingElem.innerText = 'LOADING';
+    return loadingElem;
   }
 };
 
-},{}]},{},[3]);
+},{}]},{},[4]);
