@@ -8,7 +8,7 @@ const {extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
   // create button to click
   if (isNozomi() || isEhentai()) {
     const btn = new Button('Fetch All');
-    btn.addCss({bottom: '160px'});
+    btn.addCss({bottom: '160px', zIndex: '999'});
     btn.appendTo(document.body);
     btn.onClick(() => {
       if (isNozomi()) {
@@ -20,6 +20,7 @@ const {extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
     });
   }
   const btn = new Button('Copy Sources');
+  btn.addCss({zIndex: '999'});
   btn.onClick(() => {
     // prepare str2Paste
     let str2paste = '';

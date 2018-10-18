@@ -96,10 +96,8 @@ const ImageSourcePattern = /<img id="img" src="(.*)" style=".*?" onerror=".*?" \
 
 function constructImage(src) {
   const img = document.createElement('img');
-  img.style.height = '1600px';
-  img.style.width = '1150px';
-  img.style.maxWidth = '1280px';
-  img.style.maxHeight = '1920px';
+  img.style.width = '100vw';
+  img.style.maxWidth = '100vw';
   img.setAttribute('src', src);
   return img;
 }
@@ -110,6 +108,8 @@ module.exports = {
     let prevPage = 1;
 
     const loadingElement = createLoadingElement();
+    let imageCreationTimer = null;
+    let getNextTimer = null;
 
     function getNextImage(page, hash) {
       const url = `https://e-hentai.org/s/${hash}/${postId}-${page}`;
@@ -118,23 +118,35 @@ module.exports = {
       xmlhttp.onreadystatechange = function () {
         if (this.readyState !== 4) return;
         if (this.status === 200) {
-          const [, imageSource] = ImageSourcePattern.exec(this.responseText);
-          const img = constructImage(imageSource);
-          document.querySelector(ImageContainerSelector).appendChild(img);
-          ImageSourcePattern.lastIndex = -1;
-          const [, p, h] = NextPagePattern.exec(this.responseText);
-          NextPagePattern.lastIndex = -1;
-          if (parseInt(p, 10) <= prevPage + 1) {
-            document.body.removeChild(loadingElement);
-            return;
-          }
-          getNextImage(p, h);
+          imageCreationTimer = setTimeout(() => {
+            const [, imageSource] = ImageSourcePattern.exec(this.responseText);
+            const img = constructImage(imageSource);
+            document.querySelector(ImageContainerSelector).appendChild(img);
+            ImageSourcePattern.lastIndex = -1;
+            clearTimeout(imageCreationTimer);
+            imageCreationTimer = null;
+          }, 1000);
+          getNextTimer = setTimeout(() => {
+            const [, p, h] = NextPagePattern.exec(this.responseText);
+            NextPagePattern.lastIndex = -1;
+            const hasNext = parseInt(p, 10) <= prevPage + 1;
+            if (hasNext) {
+              getNextImage(p, h);
+            } else {
+              document.body.removeChild(loadingElement);
+            }
+            clearTimeout(getNextTimer);
+            getNextTimer = null;
+          }, 1200);
         }
         prevPage += 1;
       };
       xmlhttp.send();
     }
 
+    const mainContainer = document.querySelector(MainContainerSelector);
+    mainContainer.style.width = '100vw';
+    mainContainer.style.maxWidth = '100vw';
     document.querySelector(TopPaginationSelector).style.display = 'none';
     document.querySelector(BottomPaginationSelector).style.display = 'none';
     document.body.appendChild(loadingElement);
@@ -182,7 +194,7 @@ const {extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
   // create button to click
   if (isNozomi() || isEhentai()) {
     const btn = new Button('Fetch All');
-    btn.addCss({bottom: '160px'});
+    btn.addCss({bottom: '160px', zIndex: '999'});
     btn.appendTo(document.body);
     btn.onClick(() => {
       if (isNozomi()) {
@@ -194,6 +206,7 @@ const {extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
     });
   }
   const btn = new Button('Copy Sources');
+  btn.addCss({zIndex: '999'});
   btn.onClick(() => {
     // prepare str2Paste
     let str2paste = '';
