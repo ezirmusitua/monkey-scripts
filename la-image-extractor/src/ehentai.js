@@ -110,10 +110,9 @@ module.exports = {
     getNextImage(page, hash);
   },
   extractEhentaiImages() {
-    const imgs = document.querySelectorAll(ImagesSelector);
-    const sources = Array.from(imgs).map(i => i.src);
+    const img = document.querySelector(ImagesSelector);
     const title = innerText(document.querySelector(TitleSelector));
-    return `${title}\n${sources.join('\n')}\n${'= ='.repeat(20)}`;
+    return `${title}\n${[img.src, ...image_sources.slice(1)].join('\n')}\n${'= ='.repeat(20)}`;
   }
 }
 ;
