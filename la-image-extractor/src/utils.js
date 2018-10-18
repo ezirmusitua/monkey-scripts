@@ -32,20 +32,20 @@ module.exports = {
     pat.lastIndex = -1;
     return matches;
   },
-  createLoadingElement() {
-    const loadingElem = document.createElement('div');
-    loadingElem.style.position = 'fixed';
-    loadingElem.style.top = '0';
-    loadingElem.style.right = '0';
-    loadingElem.style.bottom = '0';
-    loadingElem.style.left = '0';
-    loadingElem.style.display = 'flex';
-    loadingElem.style.backgroundColor = 'rgba(0, 0, 0, 0.56)';
-    loadingElem.style.justifyContent = 'center';
-    loadingElem.style.alignItems = 'center';
-    loadingElem.style.fontSize = '72px';
-    loadingElem.style.zIndex = '999';
-    loadingElem.innerText = 'LOADING';
-    return loadingElem;
+  createFullScreenElement(text) {
+    const elem = document.createElement('div');
+    elem.style.position = 'fixed';
+    elem.style.top = '0';
+    elem.style.right = '0';
+    elem.style.bottom = '0';
+    elem.style.left = '0';
+    elem.style.display = 'flex';
+    elem.style.backgroundColor = 'rgba(0, 0, 0, 0.56)';
+    elem.style.justifyContent = 'center';
+    elem.style.alignItems = 'center';
+    elem.style.fontSize = '72px';
+    elem.style.zIndex = '999';
+    elem.innerText = text;
+    return elem;
   }
 };

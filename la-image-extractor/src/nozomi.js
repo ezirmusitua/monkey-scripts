@@ -1,4 +1,4 @@
-const {innerText, createLoadingElement} = require('./utils');
+const {innerText, createFullScreenElement} = require('./utils');
 
 const [
   ImgSrcSelector,
@@ -376,7 +376,7 @@ function fetch_nozomi(totalImageCount) {
   var start_byte = 0;
   var end_byte = totalImageCount * 4 - 1;
   var xhr = new XMLHttpRequest();
-  const loadingElement = createLoadingElement();
+  const loadingElement = createFullScreenElement();
   document.body.appendChild(loadingElem);
   xhr.open('GET', nozomi_address);
   xhr.responseType = 'arraybuffer';
