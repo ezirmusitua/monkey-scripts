@@ -79,7 +79,7 @@ module.exports = {
               document.body.removeChild(loadedElem);
               clearTimeout(timer);
               timer = null;
-            }, 300000);
+            }, 3000);
             FETCH_ALL_RUNNING = false;
             return;
           }

@@ -3,7 +3,7 @@
 // @name:zh-CN          la 图片地址复制
 // @description         copy image source in hitomi.la  notomi.la  e-hentai.org to clipboard
 // @description:zh-CN   复制 hitoma.la  notomi.la  e-hentai 图片链接到剪贴板
-// @version             0.2.0
+// @version             0.2.1
 // @author              jferroal
 // @license             GPL-3.0
 // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
@@ -132,7 +132,7 @@ const postId = href().split('/')[5].split('-')[0];
 const ImageContainer = document.querySelector(ImageContainerSelector);
 const LoadMoreBtn = document.createElement('div');
 LoadMoreBtn.style.width = '100%';
-LoadMoreBtn.style.height = '48';
+LoadMoreBtn.style.lineHeight = '48px';
 LoadMoreBtn.style.margin = '24px 60px';
 LoadMoreBtn.style.cursor = 'pointer';
 LoadMoreBtn.style.backgroundColor = 'lightskyblue';
@@ -162,7 +162,7 @@ module.exports = {
               document.body.removeChild(loadedElem);
               clearTimeout(timer);
               timer = null;
-            }, 300000);
+            }, 3000);
             FETCH_ALL_RUNNING = false;
             return;
           }
