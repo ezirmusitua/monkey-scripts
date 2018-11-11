@@ -377,7 +377,7 @@ function fetch_nozomi(totalImageCount) {
   var end_byte = totalImageCount * 4 - 1;
   var xhr = new XMLHttpRequest();
   const loadingElement = createFullScreenElement();
-  document.body.appendChild(loadingElem);
+  document.body.appendChild(loadingElement);
   xhr.open('GET', nozomi_address);
   xhr.responseType = 'arraybuffer';
   xhr.setRequestHeader('Range', 'bytes=' + start_byte.toString() + '-' + end_byte.toString());
@@ -392,7 +392,7 @@ function fetch_nozomi(totalImageCount) {
           nozomi = jspack.Unpack(total + 'I', arr);
           total_items = parseInt(xhr.getResponseHeader('Content-Range').replace(/^[Bb]ytes \d+-\d+\//, '')) / 4;
           get_jsons();
-          document.body.removeChild(loadingElem);
+          document.body.removeChild(loadingElement);
         }
       }
     }
