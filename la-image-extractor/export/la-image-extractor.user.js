@@ -3,7 +3,7 @@
   // @name:zh-CN          la 图片地址复制
   // @description         copy image source in hitomi.la  notomi.la  e-hentai.org to clipboard
   // @description:zh-CN   复制 hitoma.la  notomi.la  e-hentai 图片链接到剪贴板
-  // @version             0.2.6
+  // @version             0.2.7
   // @author              jferroal
   // @license             GPL-3.0
   // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
@@ -147,7 +147,7 @@ module.exports = {
     let ImageAppendedCount = 1;
     let ImageSources = ['first_image_placeholder'];
 
-    _EhentaiState = {
+    _EhentaiState = Object.assign(_EhentaiState, {
       MainContainerSelector,
       TopPaginationSelector,
       ImageContainerSelector,
@@ -164,7 +164,7 @@ module.exports = {
       ImageAppendedCount,
       ImageSources,
       FetchAllRunning,
-    }
+    });
   },
   fetchEhentaiAll() {
     if (_EhentaiState.FetchAllRunning) return;
