@@ -1,19 +1,31 @@
-const {innerText} = require('./utils');
+const {href, innerText, isHitomi} = require('./utils');
+
+let _HitomiState = {};
+
 const ImgSrcSelector = '.img-url';
 const TitleSelector = 'title';
 const ADAPOST = false;
 const NUMBER_OF_FRONTENDS = 2;
 
 module.exports = {
+  initHitomi() {
+    if (!isHitomi()) return;
+    _HitomiState.ImagesSrcSelector = '.image-url';
+    _HitomiState.TitleSelector = 'title';
+    _HitomiState.Adapost = false;
+    _HitomiState.NumberOfFrontEnds = 2;
+
+  },
   extractHitomiImages() {
+    const {ImagesSrcSelector, TitleSelector, Adapost, NumberOfFrontEnds} = _EnthtaiState;
     let images = Array.from(document.querySelectorAll(ImgSrcSelector));
     let title = encodeURIComponent(innerText(document.querySelector(TitleSelector), '- | -').split(' | ')[0]);
-    const mat = /\/\d*(\d)\.html/.exec(window.location.href);
+    const mat = /\/\d*(\d)\.html/.exec(href());
     let lv = mat && parseInt(mat[1], 10);
     if (!lv || Number.isNaN(lv)) {
       lv = '1';
     }
-    const magic = ADAPOST ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NUMBER_OF_FRONTENDS) + 97);
+    const magic = Adapost ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NumberOfFrontends) + 97);
     images = images.map(s => s.innerText.replace('//g.hitomi.la', `https://${magic}a.hitomi.la`));
     return `${title}\n${images.join('\n')}\n${'= ='.repeat(20)}`;
   }

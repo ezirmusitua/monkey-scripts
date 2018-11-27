@@ -1,17 +1,6 @@
-const {href, innerText, createFullScreenElement} = require('./utils');
+const {createFullScreenElement, href, innerText, isEhentai} = require('./utils');
 
-const [
-  MainContainerSelector,
-  TopPaginationSelector,
-  ImageContainerSelector,
-  BottomPaginationSelector,
-  ImagesSelector,
-  TitleSelector
-] = ['#i1', '#i2', '#i3', '#i4', '#i3 img', 'title'];
-const NextPagePattern = /<div id="i3"><a onclick="return load_image\((\d+), '([\w\d]+)'\)"/gi;
-const ImageSourcePattern = /<img id="img" src="(.*)" style=".*?" onerror=".*?" \/>/gi;
-const IMAGE_ELEMENT_CREATION_DEFER = 200;
-let FETCH_ALL_RUNNING = false;
+let _EnthtaiState = {};
 
 function constructImage(src) {
   const img = document.createElement('img');
@@ -22,56 +11,92 @@ function constructImage(src) {
 }
 
 function loadMore() {
-  ImageContainer.removeChild(LoadMoreBtn);
-  const targets = image_sources.slice(image_appended_count, image_appended_count + IMAGE_PER_PAGE);
+  _EnthtaiState.ImageContainer.removeChild(_EnthtaiState.LoadMoreBtn);
+  const targets = _EnthtaiState.ImageSources
+  .slice(_EnthtaiState.ImageAppendedCount, _EnthtaiState.ImageAppendedCount + IMAGE_PER_PAGE);
   let i = 0;
   for (const src of targets) {
     let timer = setTimeout(() => {
       const img = constructImage(src);
-      document.querySelector(ImageContainerSelector).appendChild(img);
+      document.querySelector(_EnthtaiState.ImageContainerSelector).appendChild(img);
       clearTimeout(timer);
       timer = null;
-    }, i * IMAGE_ELEMENT_CREATION_DEFER);
-    image_appended_count += 1;
+    }, i * _EnthtaiState.ImageElementCreationDefer);
+    _EnthtaiState.ImageAppendedCount += 1;
     i += 1;
   }
-  if (image_appended_count < image_sources.length) {
-    ImageContainer.appendChild(LoadMoreBtn);
+  if (_EnthtaiState.ImageAppendedCount < _EnthtaiState.ImageSources.length) {
+    _EnthtaiState.ImageContainer.appendChild(_EnthtaiState.LoadMoreBtn);
   }
 }
 
-const IMAGE_PER_PAGE = 20;
-let image_appended_count = 1;
-let image_sources = ['first_image_placeholder'];
-const postId = href().split('/')[5].split('-')[0];
 
 
-const ImageContainer = document.querySelector(ImageContainerSelector);
-const LoadMoreBtn = document.createElement('div');
-LoadMoreBtn.style.width = '100%';
-LoadMoreBtn.style.lineHeight = '48px';
-LoadMoreBtn.style.margin = '24px 60px';
-LoadMoreBtn.style.cursor = 'pointer';
-LoadMoreBtn.style.backgroundColor = 'lightskyblue';
-LoadMoreBtn.style.borderRadius = '8px';
-LoadMoreBtn.innerText = 'LOAD MORE';
-LoadMoreBtn.addEventListener('click', loadMore);
 
 module.exports = {
+  initEhentai() {
+    if (!isEhentai()) return;
+    const [
+      MainContainerSelector,
+      TopPaginationSelector,
+      ImageContainerSelector,
+      BottomPaginationSelector,
+      ImagesSelector,
+      TitleSelector
+    ] = ['#i1', '#i2', '#i3', '#i4', '#i3 img', 'title'];
+    const NextPagePattern = /<div id="i3"><a onclick="return load_image\((\d+), '([\w\d]+)'\)"/gi;
+    const ImageSourcePattern = /<img id="img" src="(.*)" style=".*?" onerror=".*?" \/>/gi;
+    const ImageElementCreationDefer = 200;
+    const ImagePerPage = 20;
+    const PostId = href().split('/')[5].split('-')[0];
+    const ImageContainer = document.querySelector(ImageContainerSelector);
+    const LoadMoreBtn = document.createElement('div');
+    LoadMoreBtn.style.width = '100%';
+    LoadMoreBtn.style.lineHeight = '48px';
+    LoadMoreBtn.style.margin = '24px 60px';
+    LoadMoreBtn.style.cursor = 'pointer';
+    LoadMoreBtn.style.backgroundColor = 'lightskyblue';
+    LoadMoreBtn.style.borderRadius = '8px';
+    LoadMoreBtn.innerText = 'LOAD MORE';
+    LoadMoreBtn.addEventListener('click', loadMore);
+
+    let FetchAllRunning = false;
+    let ImageAppendedCount = 1;
+    let ImageSources = ['first_image_placeholder'];
+
+    _EnthtaiState = {
+      MainContainerSelector,
+      TopPaginationSelector,
+      ImageContainerSelector,
+      BottomPaginationSelector,
+      ImagesSelector,
+      TitleSelector,
+      NextPagePattern,
+      ImageSourcePattern,
+      ImageElementCreationDefer,
+      ImagePerPage,
+      PostId,
+      ImageContainer,
+      LoadMoreBtn,
+      ImageAppendedCount,
+      ImageSources,
+      FetchAllRunning,
+    }
+  },
   fetchEhentaiAll() {
-    if (FETCH_ALL_RUNNING) return;
-    FETCH_ALL_RUNNING = true;
+    if (_EnthtaiState.FetchAllRunning) return;
+    _EnthtaiState.FetchAllRunning = true;
 
     function getNextImage(page, hash) {
-      const url = `https://e-hentai.org/s/${hash}/${postId}-${page}`;
+      const url = `https://e-hentai.org/s/${hash}/${_EnthtaiState.PostId}-${page}`;
       const xmlhttp = new XMLHttpRequest();
       xmlhttp.open('GET', url);
       xmlhttp.onreadystatechange = function () {
         if (this.readyState !== 4) return;
         if (this.status === 200) {
-          const [, p, h] = NextPagePattern.exec(this.responseText);
-          NextPagePattern.lastIndex = -1;
-          const hasNext = parseInt(p, 10) !== image_sources.length;
+          const [, p, h] = _EnthtaiState.NextPagePattern.exec(this.responseText);
+          _EnthtaiState.NextPagePattern.lastIndex = -1;
+          const hasNext = parseInt(p, 10) !== _EnthtaiState.ImageSources.length;
           if (!hasNext) {
             const loadedElem = createFullScreenElement('ALL IMAGE SOURCES LOADED');
             document.body.appendChild(loadedElem);
@@ -80,19 +105,19 @@ module.exports = {
               clearTimeout(timer);
               timer = null;
             }, 3000);
-            FETCH_ALL_RUNNING = false;
+            _EnthtaiState.FetchAllRunning = false;
             return;
           }
-          const [, imageSource] = ImageSourcePattern.exec(this.responseText);
-          ImageSourcePattern.lastIndex = -1;
-          image_sources.push(imageSource);
-          if (image_appended_count < IMAGE_PER_PAGE) {
+          const [, imageSource] = _EnthtaiState.ImageSourcePattern.exec(this.responseText);
+          _EnthtaiState.ImageSourcePattern.lastIndex = -1;
+          _EnthtaiState.ImageSources.push(imageSource);
+          if (_EnthtaiState.ImageAppendedCount < _EnthtaiState.ImagePerPage) {
             // load IMAGE PER PAGE COUNT image at first
             const img = constructImage(imageSource);
-            ImageContainer.appendChild(img);
+            _EnthtaiState.ImageContainer.appendChild(img);
             image_appended_count += 1;
           } else {
-            ImageContainer.appendChild(LoadMoreBtn);
+            ImageContainer.appendChild(_EnthtaiState.LoadMoreBtn);
           }
           getNextImage(p, h);
         }
@@ -100,19 +125,22 @@ module.exports = {
       xmlhttp.send();
     }
 
-    const mainContainer = document.querySelector(MainContainerSelector);
-    window.addEventListener('resize', () => {document.querySelector(MainContainerSelector).style.maxWidth = '100vw';});
+    const mainContainer = document.querySelector(_EnthtaiState.MainContainerSelector);
+    window.addEventListener('resize', () => {
+      document.querySelector(_EnthtaiState.MainContainerSelector).style.maxWidth = '100vw';
+    });
     mainContainer.style.width = '100vw';
     mainContainer.style.maxWidth = '100vw';
-    document.querySelector(TopPaginationSelector).style.display = 'none';
-    document.querySelector(BottomPaginationSelector).style.display = 'none';
-    const [, page, hash] = NextPagePattern.exec(document.querySelector(MainContainerSelector).innerHTML);
+    document.querySelector(_EnthtaiState.TopPaginationSelector).style.display = 'none';
+    document.querySelector(_EnthtaiState.BottomPaginationSelector).style.display = 'none';
+    const [, page, hash] = _EnthtaiState.NextPagePattern.exec(
+      document.querySelector(MainContainerSelector).innerHTML
+    );
     getNextImage(page, hash);
   },
   extractEhentaiImages() {
-    const img = document.querySelector(ImagesSelector);
-    const title = innerText(document.querySelector(TitleSelector));
-    return `${title}\n${[img.src, ...image_sources.slice(1)].join('\n')}\n${'= ='.repeat(20)}`;
+    const img = document.querySelector(_EnthtaiState.ImagesSelector);
+    const title = innerText(document.querySelector(_EnthtaiState.TitleSelector));
+    return `${title}\n${[img.src, ..._EnthtaiState.ImageSources.slice(1)].join('\n')}\n${'= ='.repeat(20)}`;
   }
-}
-;
+};

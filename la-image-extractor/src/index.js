@@ -1,10 +1,13 @@
 const {isHitomi, isNozomi, isEhentai, copyToClipboard} = require('./utils');
 const Button = require('./Button');
-const {extractHitomiImages} = require('./hitomi');
-const {extractNozomiImages, fetchNozomiAll} = require('./nozomi');
-const {extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
+const {initHitomi, extractHitomiImages} = require('./hitomi');
+const {initNozomi, extractNozomiImages, fetchNozomiAll} = require('./nozomi');
+const {initEhentai, extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
 
 (function () {
+  initHitomi();
+  initNozomi();
+  initEhentai();
   // create button to click
   if (isNozomi() || isEhentai()) {
     const btn = new Button('Fetch All');

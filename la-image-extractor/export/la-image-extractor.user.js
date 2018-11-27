@@ -1,19 +1,19 @@
 // ==UserScript==
-// @name                la-image-extractor
-// @name:zh-CN          la 图片地址复制
-// @description         copy image source in hitomi.la  notomi.la  e-hentai.org to clipboard
-// @description:zh-CN   复制 hitoma.la  notomi.la  e-hentai 图片链接到剪贴板
-// @version             0.2.2
-// @author              jferroal
-// @license             GPL-3.0
-// @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
-// @include             https://hitomi.la/reader/*
-// @include             https://nozomi.la/tag/*
-// @include             https://e-hentai.org/s/*
-// @grant               GM_xmlhttpRequest
-// @run-at              document-idle
-// @namespace           https://greasyfork.org/users/34556-jferroal
-// ==/UserScript==
+  // @name                la-image-extractor
+  // @name:zh-CN          la 图片地址复制
+  // @description         copy image source in hitomi.la  notomi.la  e-hentai.org to clipboard
+  // @description:zh-CN   复制 hitoma.la  notomi.la  e-hentai 图片链接到剪贴板
+  // @version             0.2.3
+  // @author              jferroal
+  // @license             GPL-3.0
+  // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
+  // @include             https://hitomi.la/reader/*
+  // @include             https://nozomi.la/tag/*
+  // @include             https://e-hentai.org/s/*
+  // @grant               GM_xmlhttpRequest
+  // @run-at              document-idle
+  // @namespace           https://greasyfork.org/users/34556-jferroal
+  // ==/UserScript==
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 class Button {
@@ -81,20 +81,9 @@ Button.DefaultCss = {
 module.exports = Button;
 
 },{}],2:[function(require,module,exports){
-const {href, innerText, createFullScreenElement} = require('./utils');
+const {createFullScreenElement, href, innerText, isEhentai} = require('./utils');
 
-const [
-  MainContainerSelector,
-  TopPaginationSelector,
-  ImageContainerSelector,
-  BottomPaginationSelector,
-  ImagesSelector,
-  TitleSelector
-] = ['#i1', '#i2', '#i3', '#i4', '#i3 img', 'title'];
-const NextPagePattern = /<div id="i3"><a onclick="return load_image\((\d+), '([\w\d]+)'\)"/gi;
-const ImageSourcePattern = /<img id="img" src="(.*)" style=".*?" onerror=".*?" \/>/gi;
-const IMAGE_ELEMENT_CREATION_DEFER = 200;
-let FETCH_ALL_RUNNING = false;
+let _EnthtaiState = {};
 
 function constructImage(src) {
   const img = document.createElement('img');
@@ -105,56 +94,92 @@ function constructImage(src) {
 }
 
 function loadMore() {
-  ImageContainer.removeChild(LoadMoreBtn);
-  const targets = image_sources.slice(image_appended_count, image_appended_count + IMAGE_PER_PAGE);
+  _EnthtaiState.ImageContainer.removeChild(_EnthtaiState.LoadMoreBtn);
+  const targets = _EnthtaiState.ImageSources
+  .slice(_EnthtaiState.ImageAppendedCount, _EnthtaiState.ImageAppendedCount + IMAGE_PER_PAGE);
   let i = 0;
   for (const src of targets) {
     let timer = setTimeout(() => {
       const img = constructImage(src);
-      document.querySelector(ImageContainerSelector).appendChild(img);
+      document.querySelector(_EnthtaiState.ImageContainerSelector).appendChild(img);
       clearTimeout(timer);
       timer = null;
-    }, i * IMAGE_ELEMENT_CREATION_DEFER);
-    image_appended_count += 1;
+    }, i * _EnthtaiState.ImageElementCreationDefer);
+    _EnthtaiState.ImageAppendedCount += 1;
     i += 1;
   }
-  if (image_appended_count < image_sources.length) {
-    ImageContainer.appendChild(LoadMoreBtn);
+  if (_EnthtaiState.ImageAppendedCount < _EnthtaiState.ImageSources.length) {
+    _EnthtaiState.ImageContainer.appendChild(_EnthtaiState.LoadMoreBtn);
   }
 }
 
-const IMAGE_PER_PAGE = 20;
-let image_appended_count = 1;
-let image_sources = ['first_image_placeholder'];
-const postId = href().split('/')[5].split('-')[0];
 
 
-const ImageContainer = document.querySelector(ImageContainerSelector);
-const LoadMoreBtn = document.createElement('div');
-LoadMoreBtn.style.width = '100%';
-LoadMoreBtn.style.lineHeight = '48px';
-LoadMoreBtn.style.margin = '24px 60px';
-LoadMoreBtn.style.cursor = 'pointer';
-LoadMoreBtn.style.backgroundColor = 'lightskyblue';
-LoadMoreBtn.style.borderRadius = '8px';
-LoadMoreBtn.innerText = 'LOAD MORE';
-LoadMoreBtn.addEventListener('click', loadMore);
 
 module.exports = {
+  initEhentai() {
+    if (!isEhentai()) return;
+    const [
+      MainContainerSelector,
+      TopPaginationSelector,
+      ImageContainerSelector,
+      BottomPaginationSelector,
+      ImagesSelector,
+      TitleSelector
+    ] = ['#i1', '#i2', '#i3', '#i4', '#i3 img', 'title'];
+    const NextPagePattern = /<div id="i3"><a onclick="return load_image\((\d+), '([\w\d]+)'\)"/gi;
+    const ImageSourcePattern = /<img id="img" src="(.*)" style=".*?" onerror=".*?" \/>/gi;
+    const ImageElementCreationDefer = 200;
+    const ImagePerPage = 20;
+    const PostId = href().split('/')[5].split('-')[0];
+    const ImageContainer = document.querySelector(ImageContainerSelector);
+    const LoadMoreBtn = document.createElement('div');
+    LoadMoreBtn.style.width = '100%';
+    LoadMoreBtn.style.lineHeight = '48px';
+    LoadMoreBtn.style.margin = '24px 60px';
+    LoadMoreBtn.style.cursor = 'pointer';
+    LoadMoreBtn.style.backgroundColor = 'lightskyblue';
+    LoadMoreBtn.style.borderRadius = '8px';
+    LoadMoreBtn.innerText = 'LOAD MORE';
+    LoadMoreBtn.addEventListener('click', loadMore);
+
+    let FetchAllRunning = false;
+    let ImageAppendedCount = 1;
+    let ImageSources = ['first_image_placeholder'];
+
+    _EnthtaiState = {
+      MainContainerSelector,
+      TopPaginationSelector,
+      ImageContainerSelector,
+      BottomPaginationSelector,
+      ImagesSelector,
+      TitleSelector,
+      NextPagePattern,
+      ImageSourcePattern,
+      ImageElementCreationDefer,
+      ImagePerPage,
+      PostId,
+      ImageContainer,
+      LoadMoreBtn,
+      ImageAppendedCount,
+      ImageSources,
+      FetchAllRunning,
+    }
+  },
   fetchEhentaiAll() {
-    if (FETCH_ALL_RUNNING) return;
-    FETCH_ALL_RUNNING = true;
+    if (_EnthtaiState.FetchAllRunning) return;
+    _EnthtaiState.FetchAllRunning = true;
 
     function getNextImage(page, hash) {
-      const url = `https://e-hentai.org/s/${hash}/${postId}-${page}`;
+      const url = `https://e-hentai.org/s/${hash}/${_EnthtaiState.PostId}-${page}`;
       const xmlhttp = new XMLHttpRequest();
       xmlhttp.open('GET', url);
       xmlhttp.onreadystatechange = function () {
         if (this.readyState !== 4) return;
         if (this.status === 200) {
-          const [, p, h] = NextPagePattern.exec(this.responseText);
-          NextPagePattern.lastIndex = -1;
-          const hasNext = parseInt(p, 10) !== image_sources.length;
+          const [, p, h] = _EnthtaiState.NextPagePattern.exec(this.responseText);
+          _EnthtaiState.NextPagePattern.lastIndex = -1;
+          const hasNext = parseInt(p, 10) !== _EnthtaiState.ImageSources.length;
           if (!hasNext) {
             const loadedElem = createFullScreenElement('ALL IMAGE SOURCES LOADED');
             document.body.appendChild(loadedElem);
@@ -163,19 +188,19 @@ module.exports = {
               clearTimeout(timer);
               timer = null;
             }, 3000);
-            FETCH_ALL_RUNNING = false;
+            _EnthtaiState.FetchAllRunning = false;
             return;
           }
-          const [, imageSource] = ImageSourcePattern.exec(this.responseText);
-          ImageSourcePattern.lastIndex = -1;
-          image_sources.push(imageSource);
-          if (image_appended_count < IMAGE_PER_PAGE) {
+          const [, imageSource] = _EnthtaiState.ImageSourcePattern.exec(this.responseText);
+          _EnthtaiState.ImageSourcePattern.lastIndex = -1;
+          _EnthtaiState.ImageSources.push(imageSource);
+          if (_EnthtaiState.ImageAppendedCount < _EnthtaiState.ImagePerPage) {
             // load IMAGE PER PAGE COUNT image at first
             const img = constructImage(imageSource);
-            ImageContainer.appendChild(img);
+            _EnthtaiState.ImageContainer.appendChild(img);
             image_appended_count += 1;
           } else {
-            ImageContainer.appendChild(LoadMoreBtn);
+            ImageContainer.appendChild(_EnthtaiState.LoadMoreBtn);
           }
           getNextImage(p, h);
         }
@@ -183,40 +208,55 @@ module.exports = {
       xmlhttp.send();
     }
 
-    const mainContainer = document.querySelector(MainContainerSelector);
-    window.addEventListener('resize', () => {document.querySelector(MainContainerSelector).style.maxWidth = '100vw';});
+    const mainContainer = document.querySelector(_EnthtaiState.MainContainerSelector);
+    window.addEventListener('resize', () => {
+      document.querySelector(_EnthtaiState.MainContainerSelector).style.maxWidth = '100vw';
+    });
     mainContainer.style.width = '100vw';
     mainContainer.style.maxWidth = '100vw';
-    document.querySelector(TopPaginationSelector).style.display = 'none';
-    document.querySelector(BottomPaginationSelector).style.display = 'none';
-    const [, page, hash] = NextPagePattern.exec(document.querySelector(MainContainerSelector).innerHTML);
+    document.querySelector(_EnthtaiState.TopPaginationSelector).style.display = 'none';
+    document.querySelector(_EnthtaiState.BottomPaginationSelector).style.display = 'none';
+    const [, page, hash] = _EnthtaiState.NextPagePattern.exec(
+      document.querySelector(MainContainerSelector).innerHTML
+    );
     getNextImage(page, hash);
   },
   extractEhentaiImages() {
-    const img = document.querySelector(ImagesSelector);
-    const title = innerText(document.querySelector(TitleSelector));
-    return `${title}\n${[img.src, ...image_sources.slice(1)].join('\n')}\n${'= ='.repeat(20)}`;
+    const img = document.querySelector(_EnthtaiState.ImagesSelector);
+    const title = innerText(document.querySelector(_EnthtaiState.TitleSelector));
+    return `${title}\n${[img.src, ..._EnthtaiState.ImageSources.slice(1)].join('\n')}\n${'= ='.repeat(20)}`;
   }
-}
-;
+};
 
 },{"./utils":6}],3:[function(require,module,exports){
-const {innerText} = require('./utils');
+const {href, innerText, isHitomi} = require('./utils');
+
+let _HitomiState = {};
+
 const ImgSrcSelector = '.img-url';
 const TitleSelector = 'title';
 const ADAPOST = false;
 const NUMBER_OF_FRONTENDS = 2;
 
 module.exports = {
+  initHitomi() {
+    if (!isHitomi()) return;
+    _HitomiState.ImagesSrcSelector = '.image-url';
+    _HitomiState.TitleSelector = 'title';
+    _HitomiState.Adapost = false;
+    _HitomiState.NumberOfFrontEnds = 2;
+
+  },
   extractHitomiImages() {
+    const {ImagesSrcSelector, TitleSelector, Adapost, NumberOfFrontEnds} = _EnthtaiState;
     let images = Array.from(document.querySelectorAll(ImgSrcSelector));
     let title = encodeURIComponent(innerText(document.querySelector(TitleSelector), '- | -').split(' | ')[0]);
-    const mat = /\/\d*(\d)\.html/.exec(window.location.href);
+    const mat = /\/\d*(\d)\.html/.exec(href());
     let lv = mat && parseInt(mat[1], 10);
     if (!lv || Number.isNaN(lv)) {
       lv = '1';
     }
-    const magic = ADAPOST ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NUMBER_OF_FRONTENDS) + 97);
+    const magic = Adapost ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NumberOfFrontends) + 97);
     images = images.map(s => s.innerText.replace('//g.hitomi.la', `https://${magic}a.hitomi.la`));
     return `${title}\n${images.join('\n')}\n${'= ='.repeat(20)}`;
   }
@@ -225,11 +265,14 @@ module.exports = {
 },{"./utils":6}],4:[function(require,module,exports){
 const {isHitomi, isNozomi, isEhentai, copyToClipboard} = require('./utils');
 const Button = require('./Button');
-const {extractHitomiImages} = require('./hitomi');
-const {extractNozomiImages, fetchNozomiAll} = require('./nozomi');
-const {extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
+const {initHitomi, extractHitomiImages} = require('./hitomi');
+const {initNozomi, extractNozomiImages, fetchNozomiAll} = require('./nozomi');
+const {initEhentai, extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
 
 (function () {
+  initHitomi();
+  initNozomi();
+  initEhentai();
   // create button to click
   if (isNozomi() || isEhentai()) {
     const btn = new Button('Fetch All');
@@ -263,6 +306,8 @@ const {extractEhentaiImages, fetchEhentaiAll} = require('./ehentai');
 
 },{"./Button":1,"./ehentai":2,"./hitomi":3,"./nozomi":5,"./utils":6}],5:[function(require,module,exports){
 const {innerText, createFullScreenElement} = require('./utils');
+
+// TODO: refactor
 
 const [
   ImgSrcSelector,

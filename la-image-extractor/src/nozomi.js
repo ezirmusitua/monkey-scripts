@@ -1,5 +1,7 @@
 const {innerText, createFullScreenElement} = require('./utils');
 
+// TODO: refactor
+
 const [
   ImgSrcSelector,
   TitleSelector,
