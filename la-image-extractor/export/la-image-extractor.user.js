@@ -3,7 +3,7 @@
   // @name:zh-CN          la 图片地址复制
   // @description         copy image source in hitomi.la  notomi.la  e-hentai.org to clipboard
   // @description:zh-CN   复制 hitoma.la  notomi.la  e-hentai 图片链接到剪贴板
-  // @version             0.2.3
+  // @version             0.2.4
   // @author              jferroal
   // @license             GPL-3.0
   // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
@@ -807,6 +807,9 @@ function results_to_page(datas) {
 
 
 module.exports = {
+  initNozomi() {
+    return;
+  },
   fetchNozomiAll() {
     const totalPage = parseInt(innerText(document.querySelector('.page-container li:last-child'), 1), 10);
     const totalImageCount = totalPage * 64;

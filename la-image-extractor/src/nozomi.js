@@ -500,6 +500,9 @@ function results_to_page(datas) {
 
 
 module.exports = {
+  initNozomi() {
+    return;
+  },
   fetchNozomiAll() {
     const totalPage = parseInt(innerText(document.querySelector('.page-container li:last-child'), 1), 10);
     const totalImageCount = totalPage * 64;
