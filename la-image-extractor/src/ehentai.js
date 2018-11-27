@@ -11,7 +11,7 @@ function constructImage(src) {
 }
 
 function loadMore() {
-  _EnthtaiState.ImageContainer.removeChild(_EhentaiState.LoadMoreBtn);
+  _EhentaiState.ImageContainer.removeChild(_EhentaiState.LoadMoreBtn);
   const targets = _EhentaiState.ImageSources
   .slice(_EhentaiState.ImageAppendedCount, _EhentaiState.ImageAppendedCount + IMAGE_PER_PAGE);
   let i = 0;
@@ -49,20 +49,19 @@ module.exports = {
     const ImageElementCreationDefer = 200;
     const ImagePerPage = 20;
     const PostId = href().split('/')[5].split('-')[0];
-    const ImageContainer = document.querySelector(ImageContainerSelector);
-    const LoadMoreBtn = document.createElement('div');
-    LoadMoreBtn.style.width = '100%';
-    LoadMoreBtn.style.lineHeight = '48px';
-    LoadMoreBtn.style.margin = '24px 60px';
-    LoadMoreBtn.style.cursor = 'pointer';
-    LoadMoreBtn.style.backgroundColor = 'lightskyblue';
-    LoadMoreBtn.style.borderRadius = '8px';
-    LoadMoreBtn.innerText = 'LOAD MORE';
-    LoadMoreBtn.addEventListener('click', loadMore);
-
-    let FetchAllRunning = false;
-    let ImageAppendedCount = 1;
-    let ImageSources = ['first_image_placeholder'];
+    _EhentaiState.ImageContainer = document.querySelector(ImageContainerSelector);
+    _EhentaiState.LoadMoreBtn = document.createElement('div');
+    _EhentaiState.LoadMoreBtn.style.width = '100%';
+    _EhentaiState.LoadMoreBtn.style.lineHeight = '48px';
+    _EhentaiState.LoadMoreBtn.style.margin = '24px 60px';
+    _EhentaiState.LoadMoreBtn.style.cursor = 'pointer';
+    _EhentaiState.LoadMoreBtn.style.backgroundColor = 'lightskyblue';
+    _EhentaiState.LoadMoreBtn.style.borderRadius = '8px';
+    _EhentaiState.LoadMoreBtn.innerText = 'LOAD MORE';
+    _EhentaiState.LoadMoreBtn.addEventListener('click', loadMore);
+    _EhentaiState.FetchAllRunning = false;
+    _EhentaiState.ImageAppendedCount = 1;
+    _EhentaiState.ImageSources = ['first_image_placeholder'];
 
     _EhentaiState = {
       MainContainerSelector,
@@ -76,11 +75,6 @@ module.exports = {
       ImageElementCreationDefer,
       ImagePerPage,
       PostId,
-      ImageContainer,
-      LoadMoreBtn,
-      ImageAppendedCount,
-      ImageSources,
-      FetchAllRunning,
     }
   },
   fetchEhentaiAll() {
@@ -94,7 +88,7 @@ module.exports = {
       xmlhttp.onreadystatechange = function () {
         if (this.readyState !== 4) return;
         if (this.status === 200) {
-          const [, p, h] = _EnthtaiState.NextPagePattern.exec(this.responseText);
+          const [, p, h] = _EhentaiState.NextPagePattern.exec(this.responseText);
           _EhentaiState.NextPagePattern.lastIndex = -1;
           const hasNext = parseInt(p, 10) !== _EhentaiState.ImageSources.length;
           if (!hasNext) {
@@ -115,9 +109,9 @@ module.exports = {
             // load IMAGE PER PAGE COUNT image at first
             const img = constructImage(imageSource);
             _EhentaiState.ImageContainer.appendChild(img);
-            image_appended_count += 1;
+            _EhentaiState.ImageAppendedCount += 1;
           } else {
-            ImageContainer.appendChild(_EhentaiState.LoadMoreBtn);
+            _EhentaiState.ImageContainer.appendChild(_EhentaiState.LoadMoreBtn);
           }
           getNextImage(p, h);
         }

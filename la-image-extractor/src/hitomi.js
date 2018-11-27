@@ -5,7 +5,7 @@ let _HitomiState = {};
 module.exports = {
   initHitomi() {
     if (!isHitomi()) return;
-    _HitomiState.ImgsSrcSelector = '.image-url';
+    _HitomiState.ImgsSrcSelector = '.img-url';
     _HitomiState.TitleSelector = 'title';
     _HitomiState.Adapost = false;
     _HitomiState.NumberOfFrontEnds = 2;
@@ -20,7 +20,7 @@ module.exports = {
     if (!lv || Number.isNaN(lv)) {
       lv = '1';
     }
-    const magic = Adapost ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NumberOfFrontends) + 97);
+    const magic = Adapost ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NumberOfFrontEnds) + 97);
     images = images.map(s => s.innerText.replace('//g.hitomi.la', `https://${magic}a.hitomi.la`));
     return `${title}\n${images.join('\n')}\n${'= ='.repeat(20)}`;
   }
