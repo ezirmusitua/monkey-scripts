@@ -2,11 +2,6 @@ const {href, innerText, isHitomi} = require('./utils');
 
 let _HitomiState = {};
 
-const ImgSrcSelector = '.img-url';
-const TitleSelector = 'title';
-const ADAPOST = false;
-const NUMBER_OF_FRONTENDS = 2;
-
 module.exports = {
   initHitomi() {
     if (!isHitomi()) return;
@@ -17,7 +12,7 @@ module.exports = {
 
   },
   extractHitomiImages() {
-    const {ImagesSrcSelector, TitleSelector, Adapost, NumberOfFrontEnds} = _EnthtaiState;
+    const {ImagesSrcSelector, TitleSelector, Adapost, NumberOfFrontEnds} = _HitomiState;
     let images = Array.from(document.querySelectorAll(ImgSrcSelector));
     let title = encodeURIComponent(innerText(document.querySelector(TitleSelector), '- | -').split(' | ')[0]);
     const mat = /\/\d*(\d)\.html/.exec(href());
