@@ -63,7 +63,7 @@ module.exports = {
     _EhentaiState.ImageAppendedCount = 1;
     _EhentaiState.ImageSources = ['first_image_placeholder'];
 
-    _EhentaiState = {
+    _EhentaiState = Object.assign(_EhentaiState, {
       MainContainerSelector,
       TopPaginationSelector,
       ImageContainerSelector,
@@ -75,7 +75,7 @@ module.exports = {
       ImageElementCreationDefer,
       ImagePerPage,
       PostId,
-    }
+    });
   },
   fetchEhentaiAll() {
     if (_EhentaiState.FetchAllRunning) return;
