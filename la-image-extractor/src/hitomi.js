@@ -5,15 +5,15 @@ let _HitomiState = {};
 module.exports = {
   initHitomi() {
     if (!isHitomi()) return;
-    _HitomiState.ImagesSrcSelector = '.image-url';
+    _HitomiState.ImgsSrcSelector = '.image-url';
     _HitomiState.TitleSelector = 'title';
     _HitomiState.Adapost = false;
     _HitomiState.NumberOfFrontEnds = 2;
 
   },
   extractHitomiImages() {
-    const {ImagesSrcSelector, TitleSelector, Adapost, NumberOfFrontEnds} = _HitomiState;
-    let images = Array.from(document.querySelectorAll(ImgSrcSelector));
+    const {ImgsSrcSelector, TitleSelector, Adapost, NumberOfFrontEnds} = _HitomiState;
+    let images = Array.from(document.querySelectorAll(ImgsSrcSelector));
     let title = encodeURIComponent(innerText(document.querySelector(TitleSelector), '- | -').split(' | ')[0]);
     const mat = /\/\d*(\d)\.html/.exec(href());
     let lv = mat && parseInt(mat[1], 10);

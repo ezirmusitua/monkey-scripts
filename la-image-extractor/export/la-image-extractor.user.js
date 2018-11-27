@@ -3,7 +3,7 @@
   // @name:zh-CN          la 图片地址复制
   // @description         copy image source in hitomi.la  notomi.la  e-hentai.org to clipboard
   // @description:zh-CN   复制 hitoma.la  notomi.la  e-hentai 图片链接到剪贴板
-  // @version             0.2.5
+  // @version             0.2.6
   // @author              jferroal
   // @license             GPL-3.0
   // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
@@ -237,15 +237,15 @@ let _HitomiState = {};
 module.exports = {
   initHitomi() {
     if (!isHitomi()) return;
-    _HitomiState.ImagesSrcSelector = '.image-url';
+    _HitomiState.ImgsSrcSelector = '.image-url';
     _HitomiState.TitleSelector = 'title';
     _HitomiState.Adapost = false;
     _HitomiState.NumberOfFrontEnds = 2;
 
   },
   extractHitomiImages() {
-    const {ImagesSrcSelector, TitleSelector, Adapost, NumberOfFrontEnds} = _HitomiState;
-    let images = Array.from(document.querySelectorAll(ImgSrcSelector));
+    const {ImgsSrcSelector, TitleSelector, Adapost, NumberOfFrontEnds} = _HitomiState;
+    let images = Array.from(document.querySelectorAll(ImgsSrcSelector));
     let title = encodeURIComponent(innerText(document.querySelector(TitleSelector), '- | -').split(' | ')[0]);
     const mat = /\/\d*(\d)\.html/.exec(href());
     let lv = mat && parseInt(mat[1], 10);
