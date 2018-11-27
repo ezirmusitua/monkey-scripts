@@ -13,7 +13,7 @@ function constructImage(src) {
 function loadMore() {
   _EhentaiState.ImageContainer.removeChild(_EhentaiState.LoadMoreBtn);
   const targets = _EhentaiState.ImageSources
-  .slice(_EhentaiState.ImageAppendedCount, _EhentaiState.ImageAppendedCount + IMAGE_PER_PAGE);
+  .slice(_EhentaiState.ImageAppendedCount, _EhentaiState.ImageAppendedCount + _EhentaiState.ImagePerPage);
   let i = 0;
   for (const src of targets) {
     let timer = setTimeout(() => {
