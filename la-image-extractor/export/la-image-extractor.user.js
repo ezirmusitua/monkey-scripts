@@ -3,7 +3,7 @@
   // @name:zh-CN          la 图片地址复制
   // @description         copy image source in hitomi.la  notomi.la  e-hentai.org to clipboard
   // @description:zh-CN   复制 hitoma.la  notomi.la  e-hentai 图片链接到剪贴板
-  // @version             0.2.7
+  // @version             0.2.5
   // @author              jferroal
   // @license             GPL-3.0
   // @require             https://greasyfork.org/scripts/31793-jmul/code/JMUL.js?version=209567
@@ -94,9 +94,9 @@ function constructImage(src) {
 }
 
 function loadMore() {
-  _EnthtaiState.ImageContainer.removeChild(_EhentaiState.LoadMoreBtn);
+  _EhentaiState.ImageContainer.removeChild(_EhentaiState.LoadMoreBtn);
   const targets = _EhentaiState.ImageSources
-  .slice(_EhentaiState.ImageAppendedCount, _EhentaiState.ImageAppendedCount + IMAGE_PER_PAGE);
+  .slice(_EhentaiState.ImageAppendedCount, _EhentaiState.ImageAppendedCount + _EhentaiState.ImagePerPage);
   let i = 0;
   for (const src of targets) {
     let timer = setTimeout(() => {
@@ -132,20 +132,19 @@ module.exports = {
     const ImageElementCreationDefer = 200;
     const ImagePerPage = 20;
     const PostId = href().split('/')[5].split('-')[0];
-    const ImageContainer = document.querySelector(ImageContainerSelector);
-    const LoadMoreBtn = document.createElement('div');
-    LoadMoreBtn.style.width = '100%';
-    LoadMoreBtn.style.lineHeight = '48px';
-    LoadMoreBtn.style.margin = '24px 60px';
-    LoadMoreBtn.style.cursor = 'pointer';
-    LoadMoreBtn.style.backgroundColor = 'lightskyblue';
-    LoadMoreBtn.style.borderRadius = '8px';
-    LoadMoreBtn.innerText = 'LOAD MORE';
-    LoadMoreBtn.addEventListener('click', loadMore);
-
-    let FetchAllRunning = false;
-    let ImageAppendedCount = 1;
-    let ImageSources = ['first_image_placeholder'];
+    _EhentaiState.ImageContainer = document.querySelector(ImageContainerSelector);
+    _EhentaiState.LoadMoreBtn = document.createElement('div');
+    _EhentaiState.LoadMoreBtn.style.width = '100%';
+    _EhentaiState.LoadMoreBtn.style.lineHeight = '48px';
+    _EhentaiState.LoadMoreBtn.style.margin = '24px 60px';
+    _EhentaiState.LoadMoreBtn.style.cursor = 'pointer';
+    _EhentaiState.LoadMoreBtn.style.backgroundColor = 'lightskyblue';
+    _EhentaiState.LoadMoreBtn.style.borderRadius = '8px';
+    _EhentaiState.LoadMoreBtn.innerText = 'LOAD MORE';
+    _EhentaiState.LoadMoreBtn.addEventListener('click', loadMore);
+    _EhentaiState.FetchAllRunning = false;
+    _EhentaiState.ImageAppendedCount = 1;
+    _EhentaiState.ImageSources = ['first_image_placeholder'];
 
     _EhentaiState = Object.assign(_EhentaiState, {
       MainContainerSelector,
@@ -159,11 +158,6 @@ module.exports = {
       ImageElementCreationDefer,
       ImagePerPage,
       PostId,
-      ImageContainer,
-      LoadMoreBtn,
-      ImageAppendedCount,
-      ImageSources,
-      FetchAllRunning,
     });
   },
   fetchEhentaiAll() {
@@ -177,7 +171,7 @@ module.exports = {
       xmlhttp.onreadystatechange = function () {
         if (this.readyState !== 4) return;
         if (this.status === 200) {
-          const [, p, h] = _EnthtaiState.NextPagePattern.exec(this.responseText);
+          const [, p, h] = _EhentaiState.NextPagePattern.exec(this.responseText);
           _EhentaiState.NextPagePattern.lastIndex = -1;
           const hasNext = parseInt(p, 10) !== _EhentaiState.ImageSources.length;
           if (!hasNext) {
@@ -198,9 +192,9 @@ module.exports = {
             // load IMAGE PER PAGE COUNT image at first
             const img = constructImage(imageSource);
             _EhentaiState.ImageContainer.appendChild(img);
-            image_appended_count += 1;
+            _EhentaiState.ImageAppendedCount += 1;
           } else {
-            ImageContainer.appendChild(_EhentaiState.LoadMoreBtn);
+            _EhentaiState.ImageContainer.appendChild(_EhentaiState.LoadMoreBtn);
           }
           getNextImage(p, h);
         }
@@ -237,7 +231,7 @@ let _HitomiState = {};
 module.exports = {
   initHitomi() {
     if (!isHitomi()) return;
-    _HitomiState.ImgsSrcSelector = '.image-url';
+    _HitomiState.ImgsSrcSelector = '.img-url';
     _HitomiState.TitleSelector = 'title';
     _HitomiState.Adapost = false;
     _HitomiState.NumberOfFrontEnds = 2;
@@ -252,7 +246,7 @@ module.exports = {
     if (!lv || Number.isNaN(lv)) {
       lv = '1';
     }
-    const magic = Adapost ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NumberOfFrontends) + 97);
+    const magic = Adapost ? 'a' : String.fromCharCode(((lv === 1 ? 0 : lv) % NumberOfFrontEnds) + 97);
     images = images.map(s => s.innerText.replace('//g.hitomi.la', `https://${magic}a.hitomi.la`));
     return `${title}\n${images.join('\n')}\n${'= ='.repeat(20)}`;
   }
