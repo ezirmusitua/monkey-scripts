@@ -1,0 +1,1 @@
+Hide Gallery Contains Blood Or Guro Tags In Hitomi
