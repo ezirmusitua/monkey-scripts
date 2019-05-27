@@ -1,5 +1,4 @@
 // ==UserScript==
-// ==UserScript==
 // @name                annotation-board
 // @name:zh-CN          注释墙
 // @description         allow you to add annotation after selected content and copy to clipboard and save to local server
