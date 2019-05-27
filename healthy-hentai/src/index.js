@@ -1,8 +1,6 @@
 (function () {
   function hideGalleryContainTags(galleries, tags = ['guro', 'blood']) {
-    console.log(1);
     galleries.forEach((node) => {
-      console.log(2);
       const galleryTags = Array.from(node.querySelectorAll('.relatedtags > ul > li')).map((e) => e.innerText);
       if (galleryTags.some((gt) => tags.some((t) => (new RegExp(t, 'gi')).test(gt)))) {
         node.style.display = 'none';
